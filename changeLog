@@ -1,0 +1,43 @@
+Version 1.0.8
+	- Added support for ResForcePostCC transaction
+
+Version 1.0.7
+	- Updated AX Level23 It106s Class to match APIs of other languages
+	- Bug fix to mcCorpas Class impacting 'exchange_ticket_number1' variable
+
+Version 1.0.6
+	- Added support for data key format in Vault Transactions
+	- Added support for ship indicator for Pre-auth Completion transaction
+
+Version 1.0.5
+	- Fixed issues which created PHP Notices
+	- Added support for Level23 transactions
+	
+Version 1.0.4
+	- Added support for Multi-Currency in Basic Transactions
+	- Fixed a bug with mpgHttpsPostStatus method
+	
+Version 1.0.3
+	- Added support for wallet_indicator in preauth and purchase
+	
+Version 1.0.2
+	- Added support for expdate in Vault Cavv Transactions
+	- Added additional examples for Convenience Fee for Canada
+	- Added example of wallet_indicator method in Cavv transactions
+	- Added examples of Encrypted transactions
+
+Version 1.0.1
+	- Added Convenience Fee examples for Canada
+	- Added getMpiEci method to obtain crypt type (ECI) value from Acs transaction
+	- Added crypt_type and wallet_indicator method in Cavv transactions
+
+North American (NA) Version 1.0.0
+	- Basic Transactions
+	- Vault Transactions
+	- MPI Transactions
+	- Convenience Fee Transactions
+	- Track 2 Transactions
+	- Encrypted Transactions
+	- Risk Transactions
+	- MasterPass Transactions
+	- Visa Checkout Transactions
