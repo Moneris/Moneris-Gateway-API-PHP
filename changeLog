@@ -1,3 +1,28 @@
+Version 1.0.12:
+	- Added support for Credential on File (CofInfo) for RecurUpdate transaction
+	- Updated ResAddCC, ResUpdateCC, ResAddToken, ResTokenizeCC examples
+	- Removed support for Credential on File (CofInfo) from ForcePost
+	transactions
+
+Version 1.0.11:
+	- Added support for Credential on File (CofInfo) for Basic and Vault transactions
+
+Version 1.0.10:
+	- Added connect timeout of 20 seconds
+	- Changed timeout to 35 seconds from 30 seconds
+	- Added support to obtain HostId from receipt
+	- Renamed files: 
+			- TestPurchase-VBV to TestCavvPurchase
+			- TestPreauth-VBV to TestCavvPreauth
+	- Added TestCavvPurchase-Recur example
+
+Version 1.0.9
+	- Fixed a bug with parsing special characters in XML response
+	- Changed old style constructor to __construct()
+	- Classified functions into public and private
+	- Added support for network and data_type in CavvPurchase for Interac
+	E-commerce
+	
 Version 1.0.8
 	- Added support for ResForcePostCC transaction
 

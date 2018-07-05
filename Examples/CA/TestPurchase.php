@@ -47,6 +47,15 @@ $txnArray=array('type'=>$type,
 
 $mpgTxn = new mpgTransaction($txnArray);
 
+/******************* Credential on File **********************************/
+
+$cof = new CofInfo();
+$cof->setPaymentIndicator("U");
+$cof->setPaymentInformation("2");
+$cof->setIssuerId("168451306048014");
+
+$mpgTxn->setCofInfo($cof);
+
 /****************************** Request Object *******************************/
 
 $mpgRequest = new mpgRequest($mpgTxn);
@@ -59,7 +68,7 @@ $mpgRequest->setTestMode(true); //false or comment out this line for production 
 $mpgHttpPost  =new mpgHttpsPostStatus($store_id,$api_token,$status_check,$mpgRequest);
 */
 
-$mpgHttpPost  =new mpgHttpsPost($store_id,$api_token,$mpgRequest);
+$mpgHttpPost = new mpgHttpsPost($store_id,$api_token,$mpgRequest);
 
 /******************************* Response ************************************/
 
@@ -85,6 +94,8 @@ print("\nStatusCode = " . $mpgResponse->getStatusCode());
 print("\nStatusMessage = " . $mpgResponse->getStatusMessage());
 print("\nMCPAmount = " . $mpgResponse->getMCPAmount());
 print("\nMCPCurrenyCode = " . $mpgResponse->getMCPCurrencyCode());
+print("\nHostId = " . $mpgResponse->getHostId());
+print("\nIssuerId = " . $mpgResponse->getIssuerId());
 
 ?>
 

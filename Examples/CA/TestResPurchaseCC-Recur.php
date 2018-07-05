@@ -74,6 +74,15 @@ $mpgTxn = new mpgTransaction($txnArray);
 $mpgTxn->setCvdInfo($mpgCvdInfo);
 $mpgTxn->setRecur($mpgRecur);
 
+/******************* Credential on File **********************************/
+
+$cof = new CofInfo();
+$cof->setPaymentIndicator("R");
+$cof->setPaymentInformation("2");
+$cof->setIssuerId("168451306048014");
+
+$mpgTxn->setCofInfo($cof);
+
 /************************ Request Object **********************************/
 
 $mpgRequest = new mpgRequest($mpgTxn);
@@ -107,6 +116,7 @@ print("\nAVSResponse = " . $mpgResponse->getAvsResultCode());
 print("\nRecurSuccess = " . $mpgResponse->getRecurSuccess());
 print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
+print("\nIssuerId = " . $mpgResponse->getIssuerId());
 
 //----------------- ResolveData ------------------------------
 

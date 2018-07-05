@@ -22,6 +22,14 @@ $crypt_type = '7';
 $wallet_indicator = "APP";
 $dynamic_descriptor='123456';
 
+/********************************* Recur Variables ****************************/
+$recurUnit = 'month'; //eom - end of month
+$startDate = '2018/02/06';
+$numRecurs = '4';
+$recurInterval = '10';
+$recurAmount = '31.00';
+$startNow = 'true';
+
 /*************************** Transaction Associative Array ************************/
 
 $txnArray=array(
@@ -34,12 +42,39 @@ $txnArray=array(
 			'cavv'=>$cavv,
 			'crypt_type'=>$crypt_type, //mandatory for AMEX only
 			//'wallet_indicator'=>$wallet_indicator, //set only for wallet transactions. e.g. APPLE PAY
+			//'network'=> "Interac", //set only for Interac e-commerce
+			//'data_type'=> "3DSecure", //set only for Interac e-commerce
 			'dynamic_descriptor'=>$dynamic_descriptor
 	           );
+
+/*********************** Recur Associative Array **********************/
+
+$recurArray = array('recur_unit'=>$recurUnit, // (day | week | month)
+		'start_date'=>$startDate, //yyyy/mm/dd
+		'num_recurs'=>$numRecurs,
+		'start_now'=>$startNow,
+		'period' => $recurInterval,
+		'recur_amount'=> $recurAmount
+);
+
+$mpgRecur = new mpgRecur($recurArray);
 
 /****************************** Transaction Object *******************************/
 
 $mpgTxn = new mpgTransaction($txnArray);
+
+/****************************** Recur Object *********************************/
+
+$mpgTxn->setRecur($mpgRecur);
+
+/******************* Credential on File **********************************/
+
+$cof = new CofInfo();
+$cof->setPaymentIndicator("R");
+$cof->setPaymentInformation("2");
+$cof->setIssuerId("168451306048014");
+
+$mpgTxn->setCofInfo($cof);
 
 /******************************* Request Object **********************************/
 
@@ -71,6 +106,7 @@ print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nCavvResultCode = " . $mpgResponse->getCavvResultCode());
+print("\nIssuerId = " . $mpgResponse->getIssuerId());
 
 
 ?>

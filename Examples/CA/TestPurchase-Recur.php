@@ -59,6 +59,16 @@ $mpgTxn = new mpgTransaction($txnArray);
 
 $mpgTxn->setRecur($mpgRecur);
 
+/******************* Credential on File **********************************/
+
+$cof = new CofInfo();
+$cof->setPaymentIndicator("R");
+$cof->setPaymentInformation("2");
+$cof->setIssuerId("168451306048014");
+
+$mpgTxn->setCofInfo($cof);
+
+
 /****************************** Request Object *******************************/
 
 $mpgRequest = new mpgRequest($mpgTxn);
@@ -90,4 +100,5 @@ print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nRecurSuccess = " . $mpgResponse->getRecurSuccess());
+print("\nIssuerId = " . $mpgResponse->getIssuerId());
 ?>

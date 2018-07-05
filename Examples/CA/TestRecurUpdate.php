@@ -38,9 +38,15 @@ $txnArray=array('type'=>$type,
    			    'terminate' => $terminate
    		       );
 
+/******************* Credential on File **********************************/
+
+$cof = new CofInfo();
+$cof->setIssuerId("168451306048014");
+
 /**************************** Transaction Object *****************************/
 
 $mpgTxn = new mpgTransaction($txnArray);
+$mpgTxn->setCofInfo($cof);
 
 /****************************** Request Object *******************************/
 

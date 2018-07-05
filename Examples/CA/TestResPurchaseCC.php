@@ -41,6 +41,15 @@ $txnArray=array('type'=>'res_purchase_cc',
 
 $mpgTxn = new mpgTransaction($txnArray);
 
+/******************* Credential on File **********************************/
+
+$cof = new CofInfo();
+$cof->setPaymentIndicator("U");
+$cof->setPaymentInformation("2");
+$cof->setIssuerId("168451306048014");
+
+$mpgTxn->setCofInfo($cof);
+
 /************************ Request Object **********************************/
 
 $mpgRequest = new mpgRequest($mpgTxn);
@@ -74,6 +83,7 @@ print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nAVSResponse = " . $mpgResponse->getAvsResultCode());
 print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
+print("\nIssuerId = " . $mpgResponse->getIssuerId());
 
 //----------------- ResolveData ------------------------------
 

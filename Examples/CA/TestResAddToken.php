@@ -47,10 +47,16 @@ $avsTemplate = array(
 
 $mpgAvsInfo = new mpgAvsInfo ($avsTemplate);
 
+/******************* Credential on File **********************************/
+
+$cof = new CofInfo();
+$cof->setIssuerId("168451306048014");
+
 /**************************** Transaction Object *****************************/
 
 $mpgTxn = new mpgTransaction($txnArray);
 $mpgTxn->setAvsInfo($mpgAvsInfo);
+$mpgTxn->setCofInfo($cof);
 
 /****************************** Request Object *******************************/
 
@@ -75,6 +81,7 @@ print("\nComplete = " . $mpgResponse->getComplete());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
+print("\nIssuerId = " . $mpgResponse->getIssuerId());
 
 //----------------- ResolveData ------------------------------
 

@@ -67,6 +67,7 @@ print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nAVSResponse = " . $mpgResponse->getAvsResultCode());
 print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
+print("\nIssuerId = " . $mpgResponse->getIssuerId());
 
 //----------------- ResolveData ------------------------------
 
