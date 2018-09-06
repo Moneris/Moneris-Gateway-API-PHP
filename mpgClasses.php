@@ -16,7 +16,7 @@ class mpgGlobals
 					'MONERIS_US_FILE' => '/gateway_us/servlet/MpgRequest',
 					'MONERIS_MPI_FILE' => '/mpi/servlet/MpiServlet',
 					'MONERIS_US_MPI_FILE' => '/mpi/servlet/MpiServlet',
-                  	'API_VERSION'  =>'PHP NA - 1.0.12',
+                  	'API_VERSION'  =>'PHP NA - 1.0.13',
 					'CONNECT_TIMEOUT' => '20',
                   	'CLIENT_TIMEOUT' => '35'
                  	);
@@ -1747,8 +1747,8 @@ class mpgRequest
  				//Basic
  				'batchclose' => array('ecr_number'),
  				'card_verification' =>array('order_id','cust_id','pan','expdate', 'crypt_type'),
- 				'cavv_preauth' =>array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type','dynamic_descriptor', 'wallet_indicator'),
- 				'cavv_purchase' => array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type', 'dynamic_descriptor', 'network', 'data_type','wallet_indicator'),
+ 				'cavv_preauth' =>array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type','dynamic_descriptor', 'wallet_indicator', 'cm_id'),
+ 				'cavv_purchase' => array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type', 'dynamic_descriptor', 'network', 'data_type','wallet_indicator', 'cm_id'),
  				'completion' => array('order_id', 'comp_amount','txn_number', 'crypt_type', 'cust_id', 'dynamic_descriptor', 'mcp_amount', 'mcp_currency_code', 'ship_indicator'),
  				'contactless_purchase' => array('order_id','cust_id','amount','track2','pan','expdate', 'pos_code','dynamic_descriptor'),
  				'contactless_purchasecorrection' => array('order_id','txn_number'),
@@ -1756,8 +1756,8 @@ class mpgRequest
  				'forcepost'=> array('order_id','cust_id','amount','pan','expdate','auth_code','crypt_type','dynamic_descriptor'),
  				'ind_refund' => array('order_id','cust_id', 'amount','pan','expdate', 'crypt_type','dynamic_descriptor', 'mcp_amount', 'mcp_currency_code'),
 	 			'opentotals' => array('ecr_number'),
-	 			'preauth' =>array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'mcp_amount', 'mcp_currency_code'),
-	 			'purchase'=> array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'mcp_amount', 'mcp_currency_code'),
+	 			'preauth' =>array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'mcp_amount', 'mcp_currency_code', 'market_indicator', 'cm_id'),
+	 			'purchase'=> array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'mcp_amount', 'mcp_currency_code', 'market_indicator', 'cm_id'),
 	 			'purchasecorrection' => array('order_id', 'txn_number', 'crypt_type', 'cust_id', 'dynamic_descriptor', 'mcp_currency_code'),
 	 			'reauth' =>array('order_id','cust_id', 'amount', 'orig_order_id', 'txn_number', 'crypt_type', 'dynamic_descriptor'),
 	 			'recur_update' => array('order_id','cust_id','pan','expdate','recur_amount','add_num_recurs','total_num_recurs','hold','terminate'),

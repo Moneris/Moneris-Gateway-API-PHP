@@ -1,3 +1,7 @@
+Version 1.0.13:
+	- Added support for market_indicator on Preauth and Purchase 
+	- Added support for cm_id on Preauth, Purchase, CavvPreauth and CavvPurchase
+	
 Version 1.0.12:
 	- Added support for Credential on File (CofInfo) for RecurUpdate transaction
 	- Updated ResAddCC, ResUpdateCC, ResAddToken, ResTokenizeCC examples
