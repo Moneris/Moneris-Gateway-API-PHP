@@ -16,7 +16,7 @@ class mpgGlobals
 					'MONERIS_US_FILE' => '/gateway_us/servlet/MpgRequest',
 					'MONERIS_MPI_FILE' => '/mpi/servlet/MpiServlet',
 					'MONERIS_US_MPI_FILE' => '/mpi/servlet/MpiServlet',
-                  	'API_VERSION'  =>'PHP NA - 1.0.13',
+                  	'API_VERSION'  =>'PHP NA - 1.0.14',
 					'CONNECT_TIMEOUT' => '20',
                   	'CLIENT_TIMEOUT' => '35'
                  	);
@@ -1795,7 +1795,7 @@ class mpgRequest
  				'res_mpitxn' => array('data_key','xid','amount','MD','merchantUrl','accept','userAgent','expdate'),
  				'res_preauth_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate'),
 				'res_purchase_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate'),
- 				'res_temp_add' => array('pan','expdate','crypt_type','duration', 'data_key_format'),
+ 				'res_temp_add' => array('pan','expdate','crypt_type','duration', 'data_key_format', 'anc1'),
  				'res_temp_tokenize' => array('order_id', 'txn_number', 'duration', 'crypt_type'),
 				'res_tokenize_cc' => array('order_id','txn_number','cust_id','phone','email','note', 'data_key_format'),
 				'res_update_cc' => array('data_key','cust_id','phone','email','note','pan','expdate','crypt_type'),
