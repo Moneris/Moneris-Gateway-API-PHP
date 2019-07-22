@@ -21,11 +21,6 @@ $crypt_type = '7';
 
 $dynamic_descriptor='123';
 
-//Optional - Set for Multi-Currency only
-//$amount must be 0.00 when using multi-currency
-$mcp_amount = '100'; //penny value amount 1.25 = 125
-$mcp_currency_code = '840'; //ISO-4217 country currency number
-
 ## step 1) create transaction array ###
 $txnArray=array('type'=>'refund',
          'txn_number'=>$txnnumber,
@@ -34,8 +29,6 @@ $txnArray=array('type'=>'refund',
          'crypt_type'=>$crypt_type,
          'cust_id'=> 'Customer ID',
          'dynamic_descriptor'=>$dynamic_descriptor
-         //,'mcp_amount' => $mcp_amount,
-         //'mcp_currency_code' => $mcp_currency_code
            );
 
 ## step 2) create a transaction  object passing the array created in
@@ -73,8 +66,6 @@ print("\nTransDate = " . $mpgResponse->getTransDate());
 print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
-print("\nMCPAmount = " . $mpgResponse->getMCPAmount());
-print("\nMCPCurrenyCode = " . $mpgResponse->getMCPCurrencyCode());
 
 ?>
 

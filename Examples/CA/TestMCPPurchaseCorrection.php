@@ -1,36 +1,23 @@
 <?php
 
-##
-## This program takes 3 arguments from the command line:
-## 1. Store id
-## 2. api token
-## 3. order id
-##
-## Example php -q TestIndependentRefund.php store1 yesguy unique_order_id
-##
-
 require "../../mpgClasses.php";
 
 $store_id='store5';
 $api_token='yesguy';
+$orderid='ord-150816-12:36:20';
+$txnnumber='117816-0_10';
+$dynamic_descriptor='1234';
 
-$orderid='ord-'.date("dmy-G:i:s");
-$amount = '1.00';
-$pan='4242424242424242';
-$expiry_date='2011';
-$crypt='7';
-$dynamic_descriptor='123456';
-
-## step 1) create transaction array ###
-$txnArray=array('type'=>'ind_refund',
+## step 1) create transaction hash ###
+$txnArray=array('type'=>'mcp_purchasecorrection',
+         'txn_number'=>$txnnumber,
          'order_id'=>$orderid,
-         'cust_id'=>'my cust id',
-         'amount'=>$amount,
-         'pan'=>$pan,
-         'expdate'=>$expiry_date,
-         'crypt_type'=>$crypt,
+         'crypt_type'=>'7',
+         'cust_id'=>'customer ID',
          'dynamic_descriptor'=>$dynamic_descriptor
-           );
+        );
+
+
 
 ## step 2) create a transaction  object passing the array created in
 ## step 1.
@@ -68,5 +55,12 @@ print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 
+print("\nMerchantSettlementAmount = " . $mpgResponse->getMerchantSettlementAmount());
+print("\nCardholderAmount = " . $mpgResponse->getCardholderAmount());
+print("\nCardholderCurrencyCode = " . $mpgResponse->getCardholderCurrencyCode());
+print("\nMCPRate = " . $mpgResponse->getMCPRate());
+print("\nMCPErrorStatusCode = " . $mpgResponse->getMCPErrorStatusCode());
+print("\nMCPErrorMessage = " . $mpgResponse->getMCPErrorMessage());
+print("\nHostId = " . $mpgResponse->getHostId());
 ?>
 

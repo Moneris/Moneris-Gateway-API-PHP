@@ -10,11 +10,6 @@ $txnnumber='117735-0_10';
 $compamount='1.00';
 $dynamic_descriptor='123';
 
-//Optional - Set for Multi-Currency only
-//$compamount must be 0.00 when using multi-currency
-$mcp_amount = '200'; //penny value amount 1.25 = 125
-$mcp_currency_code = '840'; //ISO-4217 country currency number
-
 $ship_indicator = "F"; //optional
 
 ## step 1) create transaction array ###
@@ -24,8 +19,6 @@ $txnArray=array('type'=>'completion',
          'comp_amount'=>$compamount,
          'crypt_type'=>'7',
          'cust_id'=>'customer ID',
-         //'mcp_amount' => $mcp_amount,
-         //'mcp_currency_code' => $mcp_currency_code
          //'ship_indicator'=>$ship_indicator, //optional
          'dynamic_descriptor'=>$dynamic_descriptor
            );
@@ -66,8 +59,6 @@ print("\nTransDate = " . $mpgResponse->getTransDate());
 print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
-print("\nMCPAmount = " . $mpgResponse->getMCPAmount());
-print("\nMCPCurrenyCode = " . $mpgResponse->getMCPCurrencyCode());
 
 ?>
 

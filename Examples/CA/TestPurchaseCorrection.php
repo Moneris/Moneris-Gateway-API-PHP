@@ -8,9 +8,6 @@ $orderid='ord-150816-12:36:20';
 $txnnumber='117816-0_10';
 $dynamic_descriptor='1234';
 
-//Optional - Set for Multi-Currency only
-$mcp_currency_code = '840'; //ISO-4217 country currency number
-
 ## step 1) create transaction hash ###
 $txnArray=array('type'=>'purchasecorrection',
          'txn_number'=>$txnnumber,
@@ -18,7 +15,6 @@ $txnArray=array('type'=>'purchasecorrection',
          'crypt_type'=>'7',
          'cust_id'=>'customer ID',
          'dynamic_descriptor'=>$dynamic_descriptor
-         //,'mcp_currency_code' => $mcp_currency_code
         );
 
 
@@ -58,8 +54,6 @@ print("\nTransDate = " . $mpgResponse->getTransDate());
 print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
-print("\nMCPAmount = " . $mpgResponse->getMCPAmount());
-print("\nMCPCurrenyCode = " . $mpgResponse->getMCPCurrencyCode());
 
 ?>
 

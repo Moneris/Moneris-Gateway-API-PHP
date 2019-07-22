@@ -1,38 +1,36 @@
 <?php
 
-##
-## This program takes 3 arguments from the command line:
-## 1. Store id
-## 2. api token
-## 3. order id
-##
-## Example php -q TestIndependentRefund.php store1 yesguy unique_order_id
-##
-
 require "../../mpgClasses.php";
 
 $store_id='store5';
 $api_token='yesguy';
+$orderid='ord-050918-14:11:30';
+$txnnumber='407995-0_11';
+$dynamic_descriptor='123';
 
-$orderid='ord-'.date("dmy-G:i:s");
-$amount = '1.00';
-$pan='4242424242424242';
-$expiry_date='2011';
-$crypt='7';
-$dynamic_descriptor='123456';
+$ship_indicator = "F"; //optional
+
+$mcp_version = '1.0';
+$cardholder_amount = '100';
+$cardholder_currency_code = '840';
+$mcp_rate_token = 'P1536170825312107';
 
 ## step 1) create transaction array ###
-$txnArray=array('type'=>'ind_refund',
-         'order_id'=>$orderid,
-         'cust_id'=>'my cust id',
-         'amount'=>$amount,
-         'pan'=>$pan,
-         'expdate'=>$expiry_date,
-         'crypt_type'=>$crypt,
-         'dynamic_descriptor'=>$dynamic_descriptor
+$txnArray= array('type'=>'mcp_completion',
+		         'txn_number'=>$txnnumber,
+		        'order_id'=>$orderid,
+		        'crypt_type'=>'7',
+		        'cust_id'=>'customer ID',
+		         //'ship_indicator'=>$ship_indicator, //optional
+		        'dynamic_descriptor'=>$dynamic_descriptor,
+				'mcp_version'=> $mcp_version,
+				'cardholder_amount' => $cardholder_amount,
+				'cardholder_currency_code' => $cardholder_currency_code,
+				'mcp_rate_token' => $mcp_rate_token
            );
 
-## step 2) create a transaction  object passing the array created in
+
+## step 2) create a transaction  object passing the hash created in
 ## step 1.
 
 $mpgTxn = new mpgTransaction($txnArray);
@@ -67,6 +65,14 @@ print("\nTransDate = " . $mpgResponse->getTransDate());
 print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
+
+print("\nMerchantSettlementAmount = " . $mpgResponse->getMerchantSettlementAmount());
+print("\nCardholderAmount = " . $mpgResponse->getCardholderAmount());
+print("\nCardholderCurrencyCode = " . $mpgResponse->getCardholderCurrencyCode());
+print("\nMCPRate = " . $mpgResponse->getMCPRate());
+print("\nMCPErrorStatusCode = " . $mpgResponse->getMCPErrorStatusCode());
+print("\nMCPErrorMessage = " . $mpgResponse->getMCPErrorMessage());
+print("\nHostId = " . $mpgResponse->getHostId());
 
 ?>
 

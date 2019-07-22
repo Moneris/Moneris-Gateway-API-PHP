@@ -15,21 +15,28 @@ $store_id='store5';
 $api_token='yesguy';
 
 $orderid='ord-'.date("dmy-G:i:s");
-$amount = '1.00';
 $pan='4242424242424242';
 $expiry_date='2011';
 $crypt='7';
 $dynamic_descriptor='123456';
 
+$mcp_version = '1.0';
+$cardholder_amount = '100';
+$cardholder_currency_code = '840';
+$mcp_rate_token = 'R1536163085399771';
+
 ## step 1) create transaction array ###
-$txnArray=array('type'=>'ind_refund',
-         'order_id'=>$orderid,
-         'cust_id'=>'my cust id',
-         'amount'=>$amount,
-         'pan'=>$pan,
-         'expdate'=>$expiry_date,
-         'crypt_type'=>$crypt,
-         'dynamic_descriptor'=>$dynamic_descriptor
+$txnArray=array('type'=>'mcp_ind_refund',
+				'order_id'=>$orderid,
+				'cust_id'=>'my cust id',
+				'pan'=>$pan,
+				'expdate'=>$expiry_date,
+				'crypt_type'=>$crypt,
+				'dynamic_descriptor'=>$dynamic_descriptor,
+				'mcp_version'=> $mcp_version,
+				'cardholder_amount' => $cardholder_amount,
+				'cardholder_currency_code' => $cardholder_currency_code,
+				'mcp_rate_token' => $mcp_rate_token
            );
 
 ## step 2) create a transaction  object passing the array created in
@@ -67,6 +74,15 @@ print("\nTransDate = " . $mpgResponse->getTransDate());
 print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
+
+print("\nMerchantSettlementAmount = " . $mpgResponse->getMerchantSettlementAmount());
+print("\nCardholderAmount = " . $mpgResponse->getCardholderAmount());
+print("\nCardholderCurrencyCode = " . $mpgResponse->getCardholderCurrencyCode());
+print("\nMCPRate = " . $mpgResponse->getMCPRate());
+print("\nMCPErrorStatusCode = " . $mpgResponse->getMCPErrorStatusCode());
+print("\nMCPErrorMessage = " . $mpgResponse->getMCPErrorMessage());
+print("\nHostId = " . $mpgResponse->getHostId());
+
 
 ?>
 
