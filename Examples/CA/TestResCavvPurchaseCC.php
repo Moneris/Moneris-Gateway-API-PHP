@@ -27,7 +27,9 @@ $txnArray =array('type'=>'res_cavv_purchase_cc',
 				 'cavv'=>$cavv,
 				 //'expdate'=>$expdate,  //mandatory for temp tokens only
 				 //'crypt_type'=>$crypt_type, //set for AMEX SafeKey only
-				 'dynamic_descriptor'=>'12346'
+				'dynamic_descriptor'=>'12346',
+				'threeds_version' => '2', //Mandatory for 3DS Version 2.0+
+				'threeds_server_trans_id' => 'e11d4985-8d25-40ed-99d6-c3803fe5e68f' //Mandatory for 3DS Version 2.0+ - obtained from MpiCavvLookup or MpiThreeDSAuthentication 
 				 );
 
 /************************ Transaction Object *******************************/
@@ -77,6 +79,7 @@ print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
 print("\nCavvResultCode = " . $mpgResponse->getCavvResultCode());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
+print("\nThreeDSVersion = " . $mpgResponse->getThreeDSVersion());
 
 //----------------- ResolveData ------------------------------
 

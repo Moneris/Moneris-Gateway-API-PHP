@@ -9,41 +9,26 @@ $api_token='yesguy';
 
 /************************ Transaction Variables ******************************/
 
-$data_key='t8RCndWBNFNt4Dx32CCnl2tlz';
-$orderid='res-preauth-'.date("dmy-G:i:s");
+$data_key='71Sc8RZFWDW7NvxSXCLC9unF4';
+$orderid='res-oct-'.date("dmy-G:i:s");
 $amount='1.00';
-$cavv='AAABBJg0VhI0VniQEjRWAAAAAAA';
-$custid='cust';	//if sent will be submitted, otherwise cust_id from profile will be used
-$expdate = '1902'; //YYMM - used only for temp token
-$crypt_type = '6'; //value obtained from MpiACS transaction
+$custid='';
+$crypt_type='1';
 
 /************************ Transaction Array **********************************/
 
-$txnArray =array('type'=>'res_cavv_preauth_cc',
+$txnArray =array('type'=>'res_oct_payment_cc',
 				 'data_key'=>$data_key,
 				 'order_id'=>$orderid,
 				 'cust_id'=>$custid,
 				 'amount'=>$amount,
-				 'cavv'=>$cavv,
-				 //'expdate'=>$expdate,  //mandatory for temp tokens only
-				 //'crypt_type'=>$crypt_type, //set for AMEX SafeKey only
-				'dynamic_descriptor'=>'12346',
-				'threeds_version' => '2', //Mandatory for 3DS Version 2.0+
-				'threeds_server_trans_id' => 'e11d4985-8d25-40ed-99d6-c3803fe5e68f' //Mandatory for 3DS Version 2.0+ - obtained from MpiCavvLookup or MpiThreeDSAuthentication 
+				 'crypt_type'=>$crypt_type,
+				 'dynamic_descriptor'=>'12346'
 				 );
 
 /************************ Transaction Object *******************************/
 
 $mpgTxn = new mpgTransaction($txnArray);
-
-/******************* Credential on File **********************************/
-
-$cof = new CofInfo();
-$cof->setPaymentIndicator("U");
-$cof->setPaymentInformation("2");
-$cof->setIssuerId("168451306048014");
-
-$mpgTxn->setCofInfo($cof);
 
 /************************ Request Object **********************************/
 
@@ -74,12 +59,9 @@ print("\nTransAmount = " . $mpgResponse->getTransAmount());
 print("\nCardType = " . $mpgResponse->getCardType());
 print("\nTxnNumber = " . $mpgResponse->getTxnNumber());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
-print("\nAVSResponse = " . $mpgResponse->getAvsResultCode());
 print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
-print("\nCavvResultCode = " . $mpgResponse->getCavvResultCode());
-print("\nIssuerId = " . $mpgResponse->getIssuerId());
-print("\nThreeDSVersion = " . $mpgResponse->getThreeDSVersion());
+print("\nFastFundsIndicator = " . $mpgResponse->getFastFundsIndicator());
 
 //----------------- ResolveData ------------------------------
 

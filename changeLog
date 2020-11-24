@@ -1,3 +1,18 @@
+Version 1.0.20:
+	- Added support for 3DS 2.0 transactions
+	- Added support for 3DS 2.0 methods in Cavv transactions
+
+Version 1.0.19:
+	- Added support for ApplePay transactions
+	- Added support for GooglePay transactions
+	- Added support for OCTPayment transactions
+
+Version 1.0.18:
+	- Fixed XML special characters parsing bug for response
+	
+Version 1.0.17:
+	- Added support for Kount transactions
+
 Version 1.0.16:
 	- Added support for MCP transactions
 

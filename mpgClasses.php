@@ -15,8 +15,9 @@ class mpgGlobals
 					'MONERIS_FILE' => '/gateway2/servlet/MpgRequest',
 					'MONERIS_US_FILE' => '/gateway_us/servlet/MpgRequest',
 					'MONERIS_MPI_FILE' => '/mpi/servlet/MpiServlet',
+					'MONERIS_MPI_2_FILE' => '/mpi2/servlet/MpiServlet',
 					'MONERIS_US_MPI_FILE' => '/mpi/servlet/MpiServlet',
-                  	'API_VERSION'  => 'PHP NA - 1.0.16',
+                  	'API_VERSION'  => 'PHP NA - 1.0.20',
 					'CONNECT_TIMEOUT' => '20',
                   	'CLIENT_TIMEOUT' => '35'
                  	);
@@ -111,6 +112,7 @@ class mpgHttpsPost
   		$this->app_version = null;
   		$this->mpgRequest=$mpgRequestOBJ;
   		$this->isMPI=$mpgRequestOBJ->getIsMPI();
+  		$this->isMPI2=$mpgRequestOBJ->getIsMPI2();
   		$dataToSend=$this->toXML();
   		
 		$url = $this->mpgRequest->getURL();
@@ -154,10 +156,10 @@ class mpgHttpsPost
   		$req=$this->mpgRequest;
   		$reqXMLString=$req->toXML();
   		
-  		if($this->isMPI === true)
+  		if($this->isMPI2 === true)
   		{
   			$this->xmlString .="<?xml version=\"1.0\"?>".
-								"<MpiRequest>".
+								"<Mpi2Request>".
 									"<store_id>$this->store_id</store_id>".
 									"<api_token>$this->api_token</api_token>";
   			
@@ -167,7 +169,22 @@ class mpgHttpsPost
   			}
 									
 			$this->xmlString .= 	$reqXMLString.
-								"</MpiRequest>";
+								"</Mpi2Request>";
+  		}
+  		else if($this->isMPI === true)
+  		{
+  			$this->xmlString .="<?xml version=\"1.0\"?>".
+   			"<MpiRequest>".
+   			"<store_id>$this->store_id</store_id>".
+   			"<api_token>$this->api_token</api_token>";
+  			
+  			if($this->app_version != null)
+  			{
+  				$this->xmlString .= "<app_version>$this->app_version</app_version>";
+  			}
+  			
+  			$this->xmlString .= 	$reqXMLString.
+  			"</MpiRequest>";
   		}
   		else
   		{
@@ -288,6 +305,7 @@ class mpgResponse
  	var $p; //parser
 
  	var $currentTag;
+ 	var $currentTagValue;
  	var $purchaseHash = array();
  	var $refundHash;
  	var $correctionHash = array();
@@ -321,6 +339,9 @@ class mpgResponse
  	var $ACSUrl;
  	var $isMPI = false;
  	
+ 	//specifically for MPI 2 transactions
+ 	var $isMPI2 = false;
+ 	
  	//specifically for Risk transactions
  	var $isResults;
  	var $isRule;
@@ -332,6 +353,9 @@ class mpgResponse
  	var $mcpRatesDataHash = array();
  	var $mcpRateData;
  	var $isMCPRatesData;
+ 	
+ 	//KountInfo
+ 	var $isKount = false;
 
  	public function __construct($xmlString)
  	{
@@ -459,6 +483,11 @@ class mpgResponse
  		return $this->getMpgResponseValue($this->responseData,'Ticket');
 	}
 
+	public function getFastFundsIndicator()
+	{
+		return $this->getMpgResponseValue($this->responseData,'FastFundsIndicator');
+	}
+	
 	public function getTimedOut()
 	{
  		return $this->getMpgResponseValue($this->responseData,'TimedOut');
@@ -1422,7 +1451,11 @@ class mpgResponse
 	
 	public function getMpiCavv()
 	{
-		if ($this->isMPI === false)
+		if($this->isMPI2)
+		{
+			return $this->getMpgResponseValue($this->responseData,'Cavv');
+		}
+		else if ($this->isMPI === false)
 		{
 			return $this->getMpgResponseValue($this->responseData,'MpiCavv');
 		}
@@ -1434,7 +1467,11 @@ class mpgResponse
 
 	public function getMpiEci()
 	{
-		if ($this->isMPI === false)
+		if($this>isMPI2)
+		{
+			return $this->getMpgResponseValue($this->responseData,'ECI');
+		}
+		else if ($this->isMPI === false)
 		{
 			return $this->getMpgResponseValue($this->responseData,'MpiEci');
 		}
@@ -1460,6 +1497,51 @@ class mpgResponse
 	public function getMpiResponseData()
 	{
 		return($this->responseData);
+	}
+	
+	public function getMpiMessageType()
+	{
+		return $this->getMpgResponseValue($this->responseData,"MessageType");
+	}
+	
+	public function getMpiThreeDSMethodURL()
+	{
+		return $this->getMpgResponseValue($this->responseData,"ThreeDSMethodURL");
+	}
+	
+	public function getMpiThreeDSMethodData()
+	{
+		return $this->getMpgResponseValue($this->responseData,"ThreeDSMethodData");
+	}
+	
+	public function getMpiThreeDSServerTransId()
+	{
+		return $this->getMpgResponseValue($this->responseData,"ThreeDSServerTransId");
+	}
+	
+	public function getMpiTransStatus()
+	{
+		return $this->getMpgResponseValue($this->responseData,"TransStatus");
+	}
+	
+	public function getMpiChallengeURL()
+	{
+		return $this->getMpgResponseValue($this->responseData,"ChallengeURL");
+	}
+	
+	public function getMpiChallengeData()
+	{
+		return $this->getMpgResponseValue($this->responseData,"ChallengeData");
+	}
+	
+	public function getMpiChallengeCompletionIndicator()
+	{
+		return $this->getMpgResponseValue($this->responseData,"ChallengeCompletionIndicator");
+	}
+	
+	public function getThreeDSVersion()
+	{
+		return $this->getMpgResponseValue($this->responseData,"ThreeDSVersion");
 	}
 	
 	public function getMpiInLineForm()
@@ -1610,126 +1692,30 @@ class mpgResponse
  		return $this->getMpgResponseValue($this->cardHash,$ecr);
 	}
 
-
-
+	public function getKountResult()
+	{
+		return $this->getMpgResponseValue($this->responseData,"KountResult");
+	}
+	
+	public function getKountTransactionId()
+	{
+		return $this->getMpgResponseValue($this->responseData,"KountTransactionId");
+	}
+	
+	public function getKountScore()
+	{
+		return $this->getMpgResponseValue($this->responseData,"KountScore");
+	}
+	
+	public function getKountInfo()
+	{
+		return $this->getMpgResponseValue($this->responseData,"KountInfo");
+	}
+	
 	private function characterHandler($parser,$data)
 	{
-		if($this->isBatchTotals)
- 		{
-   			switch($this->currentTag)
-    		{
-     			case "term_id"    :
-				{
-					$this->term_id=$data;
-					array_push($this->ecrs,$this->term_id);
-					$this->cardHash[$data]=array();
-					break;
-				}
-
-     			case "closed"     :
-				{
-					$ecrHash=$this->ecrHash;
-					$ecrHash[$this->term_id]=$data;
-					$this->ecrHash = $ecrHash;
-					break;
-				}
-
-     			case "CardType"   :
-				{
-					$this->CardType=$data;
-					$this->cards[$data]=$data;
-					array_push($this->cardHash[$this->term_id],$data) ;
-					break;
-				}
-
-     			case "Amount"     :
-				{
-					if($this->currentTxnType == "Purchase")
-					{
-						$this->purchaseHash[$this->term_id][$this->CardType]['Amount']=$data;
-					}
-					elseif( $this->currentTxnType == "Refund")
-					{
-						$this->refundHash[$this->term_id][$this->CardType]['Amount']=$data;
-					}
-					elseif( $this->currentTxnType == "Correction")
-					{
-						$this->correctionHash[$this->term_id][$this->CardType]['Amount']=$data;
-					}
-					break;
-				 }
-
-    			case "Count"     :
-				{
-					if($this->currentTxnType == "Purchase")
-					{
-						$this->purchaseHash[$this->term_id][$this->CardType]['Count']=$data;
-					}
-					elseif( $this->currentTxnType == "Refund")
-					{
-						$this->refundHash[$this->term_id][$this->CardType]['Count']=$data;
-					}
-					else if( $this->currentTxnType == "Correction")
-					{
-						$this->correctionHash[$this->term_id][$this->CardType]['Count']=$data;
-					}
-					break;
-				}
-	    	}
-
- 		}
- 		elseif($this->isResolveData && $this->currentTag != "ResolveData")
- 		{
-			if($this->currentTag == "data_key")
-			{
-				$this->data_key=$data;
-				array_push($this->DataKeys,$this->data_key);
-				$this->resolveData[$this->currentTag] = $data;
-			}
-   			else
-   			{
-   				$this->resolveData[$this->currentTag] = $data;
-   			}
- 		}
- 		elseif($this->isVdotMeInfo)
- 		{
- 			if($this->ParentNode != "")
- 				$this->vDotMeInfo[$this->ParentNode][$this->currentTag] = $data;
- 			else
- 				$this->vDotMeInfo[$this->currentTag] = $data;
- 		}
- 		else if ($this->isPaypassInfo)
- 		{
- 			$this->masterPassData[$this->currentTag] = $data;
- 		}
- 		elseif($this->isResults)
- 		{
- 			$this->results[$this->currentTag] = $data;
- 			 
- 		}
- 		elseif($this->isRule)
- 		{
- 		
- 			if ($this->currentTag == "RuleName")
- 			{
- 				$this->ruleName=$data;
- 			}
- 			$this->rules[$this->ruleName][$this->currentTag] = $data;
- 		
- 		}
- 		elseif($this->isMCPRatesData)
- 		{
- 			$this->mcpRateData[$this->currentTag] = $data;
- 		}
- 		elseif(isset($this->responseData[$this->currentTag]))
- 		{
- 			$this->responseData[$this->currentTag] .= $data;
- 		}
- 		else
- 		{
- 			$this->responseData[$this->currentTag] = $data;
- 		}
-
+		$this->currentTagValue .= $data;
+		
 	}//end characterHandler
 
 
@@ -1738,6 +1724,7 @@ class mpgResponse
 	{
 
 		$this->currentTag=$name;
+		$this->currentTagValue = "";
 
 		if($this->currentTag == "ResolveData")
 		{
@@ -1750,6 +1737,10 @@ class mpgResponse
   	 	elseif($this->currentTag == "MpiResponse")
   	 	{
   	 		$this->isMPI=true;
+  	 	}
+  	 	elseif($this->currentTag == "Mpi2Response")
+  	 	{
+  	 		$this->isMPI2=true;
   	 	}
   	 	elseif($this->currentTag == "VDotMeInfo")
   	 	{
@@ -1825,13 +1816,135 @@ class mpgResponse
    		elseif($this->isMCPRatesData)
    		{
    			$this->mcpRateData[$this->currentTag]="";
+   		}   		
+   		elseif($this->currentTag == "KountInfo")
+   		{
+   			$this->isKount = true;
    		}
 	}
 
 	private function endHandler($parser,$name)
 	{
+		$this->currentTag=$name;
+		
+		if($this->isBatchTotals)
+		{
+			switch($this->currentTag)
+			{
+				case "term_id"    :
+					{
+						$this->term_id=$this->currentTagValue;
+						array_push($this->ecrs,$this->term_id);
+						$this->cardHash[$this->currentTagValue]=array();
+						break;
+					}
+					
+				case "closed"     :
+					{
+						$ecrHash=$this->ecrHash;
+						$ecrHash[$this->term_id]=$this->currentTagValue;
+						$this->ecrHash = $ecrHash;
+						break;
+					}
+					
+				case "CardType"   :
+					{
+						$this->CardType=$this->currentTagValue;
+						$this->cards[$this->currentTagValue]=$this->currentTagValue;
+						array_push($this->cardHash[$this->term_id],$this->currentTagValue) ;
+						break;
+					}
+					
+				case "Amount"     :
+					{
+						if($this->currentTxnType == "Purchase")
+						{
+							$this->purchaseHash[$this->term_id][$this->CardType]['Amount']=$this->currentTagValue;
+						}
+						elseif( $this->currentTxnType == "Refund")
+						{
+							$this->refundHash[$this->term_id][$this->CardType]['Amount']=$this->currentTagValue;
+						}
+						elseif( $this->currentTxnType == "Correction")
+						{
+							$this->correctionHash[$this->term_id][$this->CardType]['Amount']=$this->currentTagValue;
+						}
+						break;
+					}
+					
+				case "Count"     :
+					{
+						if($this->currentTxnType == "Purchase")
+						{
+							$this->purchaseHash[$this->term_id][$this->CardType]['Count']=$this->currentTagValue;
+						}
+						elseif( $this->currentTxnType == "Refund")
+						{
+							$this->refundHash[$this->term_id][$this->CardType]['Count']=$this->currentTagValue;
+						}
+						else if( $this->currentTxnType == "Correction")
+						{
+							$this->correctionHash[$this->term_id][$this->CardType]['Count']=$this->currentTagValue;
+						}
+						break;
+					}
+			}
+			
+		}
+		elseif($this->isResolveData && $this->currentTag != "ResolveData")
+		{
+			if($this->currentTag == "data_key")
+			{
+				$this->data_key=$this->currentTagValue;
+				array_push($this->DataKeys,$this->data_key);
+				$this->resolveData[$this->currentTag] = $this->currentTagValue;
+			}
+			else
+			{
+				$this->resolveData[$this->currentTag] = $this->currentTagValue;
+			}
+		}
+		elseif($this->isVdotMeInfo)
+		{
+			if($this->ParentNode != "")
+				$this->vDotMeInfo[$this->ParentNode][$this->currentTag] = $this->currentTagValue;
+				else
+					$this->vDotMeInfo[$this->currentTag] = $this->currentTagValue;
+		}
+		else if ($this->isPaypassInfo)
+		{
+			$this->masterPassData[$this->currentTag] = $this->currentTagValue;
+		}
+		elseif($this->isResults)
+		{
+			$this->results[$this->currentTag] = $this->currentTagValue;
+			
+		}
+		elseif($this->isRule)
+		{
+			
+			if ($this->currentTag == "RuleName")
+			{
+				$this->ruleName=$this->currentTagValue;
+			}
+			$this->rules[$this->ruleName][$this->currentTag] = $this->currentTagValue;
+			
+		}
+		elseif($this->isMCPRatesData)
+		{
+			$this->mcpRateData[$this->currentTag] = $this->currentTagValue;
+		}
+		else if($this->isKount)
+		{
+			$this->responseData["KountInfo"] .= "<" .$this->currentTag . ">" . $this->currentTagValue . "</" . $this->currentTag . ">";
+		}
+		else
+		{
+			$this->responseData[$this->currentTag] = $this->currentTagValue;
+		}
 
-	 	$this->currentTag=$name;
+		//------------------ Storing  data in hash done --------------------
+		
 	 	if($this->currentTag == "ResolveData")
 		{
 			$this->isResolveData=0;
@@ -1897,6 +2010,10 @@ class mpgResponse
 	   		
 	   		$this->isMCPRatesData=0;
 	   	}
+	   	elseif($this->currentTag == "KountInfo")
+	   	{
+	   		$this->isKount = false;
+	   	}
 
  		$this->currentTag="/dev/null";
 	}
@@ -1913,8 +2030,8 @@ class mpgRequest
  				//Basic
  				'batchclose' => array('ecr_number'),
  				'card_verification' =>array('order_id','cust_id','pan','expdate', 'crypt_type'),
- 				'cavv_preauth' =>array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type','dynamic_descriptor', 'wallet_indicator', 'cm_id'),
- 				'cavv_purchase' => array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type', 'dynamic_descriptor', 'network', 'data_type','wallet_indicator', 'cm_id'),
+ 				'cavv_preauth' =>array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type','dynamic_descriptor', 'wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id'),
+ 				'cavv_purchase' => array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type', 'dynamic_descriptor', 'network', 'data_type','wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id'),
  				'completion' => array('order_id', 'comp_amount','txn_number', 'crypt_type', 'cust_id', 'dynamic_descriptor', 'ship_indicator'),
  				'contactless_purchase' => array('order_id','cust_id','amount','track2','pan','expdate', 'pos_code','dynamic_descriptor'),
  				'contactless_purchasecorrection' => array('order_id','txn_number'),
@@ -1950,8 +2067,8 @@ class mpgRequest
  				'res_add_cc' => array('cust_id','phone','email','note','pan','expdate','crypt_type', 'data_key_format'),
 				'res_add_token' => array('data_key','cust_id','phone','email','note','expdate','crypt_type', 'data_key_format'),
  				'res_card_verification_cc' => array('data_key','order_id', 'crypt_type', 'expdate'),
- 				'res_cavv_preauth_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate'),
- 				'res_cavv_purchase_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate'),
+ 				'res_cavv_preauth_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id'),
+ 				'res_cavv_purchase_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id'),
  				'res_delete' => array('data_key'),
  				'res_get_expiring' => array(),
  				'res_ind_refund_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor'),
@@ -2119,7 +2236,11 @@ class mpgRequest
  				'mcp_res_ind_refund_cc' => array('data_key','order_id','cust_id','crypt_type','dynamic_descriptor', 'mcp_version', 'cardholder_amount', 'cardholder_currency_code', 'mcp_rate_token'),
  				'mcp_res_preauth_cc' => array('data_key','order_id','cust_id','crypt_type','dynamic_descriptor','expdate', 'mcp_version', 'cardholder_amount', 'cardholder_currency_code', 'mcp_rate_token'),
  				'mcp_res_purchase_cc' => array('data_key','order_id','cust_id','crypt_type','dynamic_descriptor','expdate', 'mcp_version', 'cardholder_amount', 'cardholder_currency_code', 'mcp_rate_token'),
- 				'mcp_get_rate' => array('mcp_version', 'rate_txn_type')
+ 				'mcp_get_rate' => array('mcp_version', 'rate_txn_type'),
+ 		
+ 				//OCTPayment transactions
+ 				'oct_payment' => array('order_id','cust_id', 'amount','pan','expdate', 'crypt_type','dynamic_descriptor'),
+ 				'res_oct_payment_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor')
 			);
 
 	var $txnArray;
@@ -2127,12 +2248,27 @@ class mpgRequest
 	var $testMode = "";
 	var $isMPI = "";
 	
+	var $useEnhancedXML = false;
+	
 	public function __construct($txn)
 	{
 
  		if(is_array($txn))
    		{
     			$this->txnArray = $txn;
+   		}
+   		else if($txn instanceof mpgTransaction)
+   		{
+   			if($txn->getTransaction() instanceof Transaction)
+   			{
+   				$this->useEnhancedXML = true;
+   				$this->txnArray = $txn;
+   			}
+   			else
+   			{
+   				$temp[0]=$txn;
+   				$this->txnArray=$temp;
+   			}
    		}
  		else
    		{
@@ -2161,6 +2297,16 @@ class mpgRequest
   		}
 	}
 	
+	public function getIsMPI2()
+	{
+		if($this->useEnhancedXML)
+		{
+			return $this->txnArray->getTransaction()->getIs3DSecure2Transaction();
+		}
+		
+		return false;
+	}
+	
 	public function setTestMode($state)
 	{
 		if($state === true)
@@ -2175,6 +2321,11 @@ class mpgRequest
 
 	public function getTransactionType()
 	{
+		if($this->useEnhancedXML)
+		{
+			return $this->txnArray->getTransaction()->getTransactionType();	
+		}
+		
   		$jtmp=$this->txnArray;
   		$jtmp1=$jtmp[0]->getTransaction();
   		$jtmp2=array_shift($jtmp1);
@@ -2193,7 +2344,12 @@ class mpgRequest
   			$this->setProcCountryCode("US");
   		}
   		
-  		if((strcmp($txnType, "txn") === 0) || (strcmp($txnType, "acs") === 0))
+  		//if((strcmp($txnType, "txn") === 0) || (strcmp($txnType, "acs") === 0))
+  		if($this->getIsMPI2())
+  		{
+  			$this->isMPI = "_MPI_2";
+  		}
+  		else if($this->getIsMPI())
   		{
   			$this->isMPI = "_MPI";
   		}
@@ -2203,12 +2359,12 @@ class mpgRequest
   		}
   		
   		$hostId = "MONERIS".$this->procCountryCode.$this->testMode."_HOST";
-  		$fileId = "MONERIS".$this->procCountryCode.$this->isMPI."_FILE";
+  		$pathId = "MONERIS".$this->procCountryCode.$this->isMPI."_FILE";
   		
   		$url =  $gArray['MONERIS_PROTOCOL']."://".
   				$gArray[$hostId].":".
   				$gArray['MONERIS_PORT'].
-  				$gArray[$fileId];
+  				$gArray[$pathId];
   		
   		return $url;
 	}
@@ -2216,7 +2372,12 @@ class mpgRequest
 	var $xmlString;
 	public function toXML()
 	{
- 		$tmpTxnArray=$this->txnArray;
+		if($this->useEnhancedXML)
+		{
+			return $this->txnArray->getTransaction()->toXML();
+		}
+		
+		$tmpTxnArray=$this->txnArray;
  		$txnArrayLen=count($tmpTxnArray); //total number of transactions
 
  		for($x=0;$x < $txnArrayLen;$x++)
@@ -2774,6 +2935,71 @@ class mpgTransaction
 
 }//end class mpgTransaction
 
+###################### Transaction #########################################
+class Transaction 
+{
+	protected $data;
+	protected $rootTag;
+	protected $is3Dsecure2Transaction = false;
+	
+	public function __construct()
+	{
+		
+	}
+	
+	public function getTransactionType()
+	{
+		return $this->rootTag;
+	}
+	
+	public function getIs3DSecure2Transaction()
+	{
+		return $this->is3Dsecure2Transaction;	
+	}
+	
+	public function toXML()
+	{		
+		$xmlString = "<" . $this->rootTag . ">";
+		$xmlString .= $this->toXML_low($this->data, $this->rootTag);
+		$xmlString .= "</" . $this->rootTag . ">";
+		
+		return $xmlString;
+	}
+	
+	private function toXML_low($dataArray, $root)
+	{
+		$xmlRoot = "";
+		
+		foreach ($dataArray as $key => $value)
+		{
+			if(!is_numeric($key) && $value != "" && $value != null)
+			{
+				$xmlRoot .= "<$key>";
+			}
+			else if(is_numeric($key) && $key != "0")
+			{
+				$xmlRoot .= "</$root><$root>";
+			}
+
+			if(is_array($value))
+			{
+				$xmlRoot .= $this->toXML_low($value, $key);
+			}
+			else
+			{
+				$xmlRoot .= $value;
+			}
+			
+			if(!is_numeric($key) && $value != "" && $value != null)
+			{
+				$xmlRoot .= "</$key>";
+			}
+		}
+		
+		return $xmlRoot;
+	}
+}
+
 ###################### MpiHttpsPost #########################################
 
 class MpiHttpsPost
@@ -3090,12 +3316,12 @@ class MpiRequest
 		//$txnType = $this->getTransactionType();
 	
 		$hostId = "MONERIS".$this->procCountryCode.$this->testMode."_HOST";
-		$fileId = "MONERIS".$this->procCountryCode."_MPI_FILE";
+		$pathId = "MONERIS".$this->procCountryCode."_MPI_FILE";
 	
 		$url =  $gArray['MONERIS_PROTOCOL']."://".
 				$gArray[$hostId].":".
 				$gArray['MONERIS_PORT'].
-				$gArray[$fileId];
+				$gArray[$pathId];
 	
 		//echo "PostURL: " . $url;
 	
@@ -3418,12 +3644,12 @@ class riskRequest{
 		//$txnType = $this->getTransactionType();
 	
 		$hostId = "MONERIS".$this->procCountryCode.$this->testMode."_HOST";
-		$fileId = "MONERIS".$this->procCountryCode."_FILE";
+		$pathId = "MONERIS".$this->procCountryCode."_FILE";
 	
 		$url =  $gArray['MONERIS_PROTOCOL']."://".
 				$gArray[$hostId].":".
 				$gArray['MONERIS_PORT'].
-				$gArray[$fileId];
+				$gArray[$pathId];
 	
 		//echo "PostURL: " . $url;
 	
@@ -5197,6 +5423,928 @@ class MCPRate
 		}
 		
 		return $xmlRoot;
+	}
+}
+
+class KountInquiry extends Transaction
+{
+	
+	private $template = array (
+		"kount_merchant_id" => null,
+		"kount_api_key" => null,
+		"order_id" => null,
+		"call_center_ind" => null,
+		"currency" => null,
+		"email" => null,
+		"data_key" => null,
+		"customer_id" => null,
+		"auto_number_id" => null,
+		"financial_order_id" => null,
+		"payment_token" => null,
+		"payment_type" => null,
+		"ip_address" => null,
+		"session_id" => null,
+		"website_id" => null,
+		"amount" => null,
+		"payment_response" => null,
+		"avs_response" => null,
+		"cvd_response" => null,
+		"bill_street_1" => null,
+		"bill_street_2" => null,
+		"bill_country" => null,
+		"bill_city" => null,
+		"bill_postal_code" => null,
+		"bill_phone" => null,
+		"bill_province" => null,
+		"dob" => null,
+		"epoc" => null,
+		"gender" => null,
+		"last4" => null,
+		"customer_name" => null,
+		"ship_street_1" => null,
+		"ship_street_2" => null,
+		"ship_country" => null,
+		"ship_city" => null,
+		"ship_email" => null,
+		"ship_name" => null,
+		"ship_postal_code" => null,
+		"ship_phone" => null,
+		"ship_province" => null,
+		"ship_type" => null,
+		"products" => null,
+		"udf" => null
+	);
+
+	private $products;
+	private $udf;
+	
+	public function __construct()
+	{
+		$this->rootTag = "kount_inquiry";
+		$this->data = $this->template;
+	}
+	
+	public function setKountMerchantId($kount_merchant_id)
+	{
+		$this->data["kount_merchant_id"] = $kount_merchant_id;
+	}
+	
+	public function setKountApiKey($kount_api_key)
+	{
+		$this->data["kount_api_key"] = $kount_api_key;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setCallCenterInd($call_center_ind)
+	{
+		$this->data["call_center_ind"] = $call_center_ind;
+	}
+	
+	public function setCurrency($currency)
+	{
+		$this->data["currency"] = $currency;
+	}
+	
+	public function setEmail($email)
+	{
+		$this->data["email"] = $email;
+	}
+	
+	public function setDataKey($data_key)
+	{
+		$this->data["data_key"] = $data_key;
+	}
+	
+	public function setCustomerId($customer_id)
+	{
+		$this->data["customer_id"] = $customer_id;
+	}
+	
+	public function setAutoNumberId($auto_number_id)
+	{
+		$this->data["auto_number_id"] = $auto_number_id;
+	}
+	
+	public function setFinancialOrderId($financial_order_id)
+	{
+		$this->data["financial_order_id"] = $financial_order_id;
+	}
+	
+	public function setPaymentToken($payment_token)
+	{
+		$this->data["payment_token"] = $payment_token;
+	}
+	
+	public function setPaymentType($payment_type)
+	{
+		$this->data["payment_type"] = $payment_type;
+	}
+	
+	public function setIpAddress($ip_address)
+	{
+		$this->data["ip_address"] = $ip_address;
+	}
+	
+	public function setSessionId($session_id)
+	{
+		$this->data["session_id"] = $session_id;
+	}
+	
+	public function setWebsiteId($website_id)
+	{
+		$this->data["website_id"] = $website_id;
+	}
+	
+	public function setAmount($amount)
+	{
+		$this->data["amount"] = $amount;
+	}
+	
+	public function setPaymentResponse($payment_response)
+	{
+		$this->data["payment_response"] = $payment_response;
+	}
+	
+	public function setAvsResponse($avs_response)
+	{
+		$this->data["avs_response"] = $avs_response;
+	}
+	
+	public function setCvdResponse($cvd_response)
+	{
+		$this->data["cvd_response"] = $cvd_response;
+	}
+	
+	public function setBillStreet1($bill_street_1)
+	{
+		$this->data["bill_street_1"] = $bill_street_1;
+	}
+	
+	public function setBillStreet2($bill_street_2)
+	{
+		$this->data["bill_street_2"] = $bill_street_2;
+	}
+	
+	public function setBillCountry($bill_country)
+	{
+		$this->data["bill_country"] = $bill_country;
+	}
+	
+	public function setBillCity($bill_city)
+	{
+		$this->data["bill_city"] = $bill_city;
+	}
+	
+	public function setBillPostalCode($bill_postal_code)
+	{
+		$this->data["bill_postal_code"] = $bill_postal_code;
+	}
+	
+	public function setBillPhone($bill_phone)
+	{
+		$this->data["bill_phone"] = $bill_phone;
+	}
+	
+	public function setBillProvince($bill_province)
+	{
+		$this->data["bill_province"] = $bill_province;
+	}
+	
+	public function setDob($dob)
+	{
+		$this->data["dob"] = $dob;
+	}
+	
+	public function setEpoc($epoc)
+	{
+		$this->data["epoc"] = $epoc;
+	}
+	
+	public function setGender($gender)
+	{
+		$this->data["gender"] = $gender;
+	}
+	
+	public function setLast4($last4)
+	{
+		$this->data["last4"] = $last4;
+	}
+	
+	public function setCustomerName($customer_name)
+	{
+		$this->data["customer_name"] = $customer_name;
+	}
+	
+	public function setShipStreet1($ship_street_1)
+	{
+		$this->data["ship_street_1"] = $ship_street_1;
+	}
+	
+	public function setShipStreet2($ship_street_2)
+	{
+		$this->data["ship_street_2"] = $ship_street_2;
+	}
+	
+	public function setShipCountry($ship_country)
+	{
+		$this->data["ship_country"] = $ship_country;
+	}
+	
+	public function setShipCity($ship_city)
+	{
+		$this->data["ship_city"] = $ship_city;
+	}
+	
+	public function setShipEmail($ship_email)
+	{
+		$this->data["ship_email"] = $ship_email;
+	}
+	
+	public function setShipName($ship_name)
+	{
+		$this->data["ship_name"] = $ship_name;
+	}
+	
+	public function setShipPostalCode($ship_postal_code)
+	{
+		$this->data["ship_postal_code"] = $ship_postal_code;
+	}
+	
+	public function setShipPhone($ship_phone)
+	{
+		$this->data["ship_phone"] = $ship_phone;
+	}
+	
+	public function setShipProvince($ship_province)
+	{
+		$this->data["ship_province"] = $ship_province;
+	}
+	
+	public function setShipType($ship_type)
+	{
+		$this->data["ship_type"] = $ship_type;
+	}
+	
+	public function setProduct($item_number, $product_type, $product_item, $product_desc, $product_quant, $product_price)
+	{
+		$this->data["prod_type_" . $item_number] = $product_type;
+		$this->data["prod_item_" . $item_number] = $product_item;
+		$this->data["prod_desc_" . $item_number] = $product_desc;
+		$this->data["prod_quant_" . $item_number] = $product_quant;
+		$this->data["prod_price_" . $item_number] = $product_price;
+	}
+	
+	public function setUdfField($udf_attribute, $udf_attribute_value)
+	{
+		$this->udf[$udf_attribute] = $udf_attribute_value;
+	}
+	
+	public function setUdf()
+	{
+		$this->data["udf"] = $this->udf;
+	}
+}
+
+class KountUpdate extends Transaction
+{
+	private $template  = array (
+							"kount_merchant_id" => null,
+							"kount_api_key" => null,
+							"order_id" => null,
+							"session_id" => null,
+							"kount_transaction_id" => null,
+							"evaluate" => null,
+							"refund_status" => null,
+							"payment_response" => null,
+							"avs_response" => null,
+							"cvd_response" => null,
+							"last4" => null,
+							"financial_order_id" => null,
+							"payment_token" => null,
+							"payment_type" => null,
+							"data_key" => null
+	);
+	
+	public function __construct()
+	{
+		$this->rootTag = "kount_update";
+		$this->data = $this->template;
+	}
+	
+	public function setKountMerchantId($kount_merchant_id)
+	{
+		$this->data["kount_merchant_id"] = $kount_merchant_id;
+	}
+	
+	public function setKountApiKey($kount_api_key)
+	{
+		$this->data["kount_api_key"] = $kount_api_key;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setSessionId($session_id)
+	{
+		$this->data["session_id"] = $session_id;
+	}
+	
+	public function setKountTransactionId($kount_transaction_id)
+	{
+		$this->data["kount_transaction_id"] = $kount_transaction_id;
+	}
+	
+	public function setEvaluate($evaluate)
+	{
+		$this->data["evaluate"] = $evaluate;
+	}
+	
+	public function setRefundStatus($refund_status)
+	{
+		$this->data["refund_status"] = $refund_status;
+	}
+	
+	public function setPaymentResponse($payment_response)
+	{
+		$this->data["payment_response"] = $payment_response;
+	}
+	
+	public function setAvsResponse($avs_response)
+	{
+		$this->data["avs_response"] = $avs_response;
+	}
+	
+	public function setCvdResponse($cvd_response)
+	{
+		$this->data["cvd_response"] = $cvd_response;
+	}
+	
+	public function setLast4($last4)
+	{
+		$this->data["last4"] = $last4;
+	}
+	
+	public function setFinancialOrderId($financial_order_id)
+	{
+		$this->data["financial_order_id"] = $financial_order_id;
+	}
+	
+	public function setPaymentToken($payment_token)
+	{
+		$this->data["payment_token"] = $payment_token;
+	}
+	
+	public function setPaymentType($payment_type)
+	{
+		$this->data["payment_type"] = $payment_type;
+	}
+	
+	public function setDataKey($data_key)
+	{
+		$this->data["data_key"] = $data_key;
+	}
+}
+
+class ApplePayTokenPreauth extends Transaction
+{
+	
+	private $template = array (
+		"order_id" => null,
+		"cust_id" => null,
+		"amount" => null,
+		"displayName" => null,
+		"network" => null,
+		"version" => null,
+		"data" => null,
+		"signature" => null,
+		"header" => null,
+		"type" => null,
+		"dynamic_descriptor" => null,
+		"token_originator" => null
+	);
+	
+	public function __construct()
+	{
+		$this->rootTag = "applepay_token_preauth";
+		$this->data = $this->template;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setCustId($cust_id)
+	{
+		$this->data["cust_id"] = $cust_id;
+	}
+	
+	public function setAmount($amount)
+	{
+		$this->data["amount"] = $amount;
+	}
+		
+	public function setDisplayName($display_name)
+	{
+		$this->data["displayName"] = $display_name;
+	}
+	
+	public function setNetwork($network)
+	{
+		$this->data["network"] = $network;
+	}
+	
+	public function setVersion($version)
+	{
+		$this->data["version"] = $version;
+	}
+		
+	public function setData($data)
+	{
+		$this->data["data"] = $data;
+	}
+	
+	public function setSignature($signature)
+	{
+		$this->data["signature"] = $signature;
+	}
+	
+	public function setHeader($public_key_hash, $ephemeral_public_key, $transaction_id)
+	{
+		
+		$this->data["header"] = array(
+			"public_key_hash" => $public_key_hash,
+			"ephemeral_public_key" => $ephemeral_public_key,
+			"transaction_id" => $transaction_id
+		);
+	}
+	
+	public function setType($type)
+	{
+		$this->data["type"] = $type;
+	}
+	
+	public function setDynamicDescriptor($dynamic_descriptor)
+	{
+		$this->data["dynamic_descriptor"] = $dynamic_descriptor;
+	}
+	
+	public function setTokenOriginator($store_id, $api_token)
+	{		
+		$this->data["token_originator"] = array (
+			"store_id" => $store_id,
+			"api_token" => $api_token
+		);
+	}
+}
+
+class ApplePayTokenPurchase extends Transaction
+{
+	
+	private $template = array (
+		"order_id" => null,
+		"cust_id" => null,
+		"amount" => null,
+		"displayName" => null,
+		"network" => null,
+		"version" => null,
+		"data" => null,
+		"signature" => null,
+		"header" => null,
+		"type" => null,
+		"dynamic_descriptor" => null,
+		"token_originator" => null
+	);
+	
+	public function __construct()
+	{
+		$this->rootTag = "applepay_token_purchase";
+		$this->data = $this->template;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setCustId($cust_id)
+	{
+		$this->data["cust_id"] = $cust_id;
+	}
+	
+	public function setAmount($amount)
+	{
+		$this->data["amount"] = $amount;
+	}
+	
+	public function setDisplayName($display_name)
+	{
+		$this->data["displayName"] = $display_name;
+	}
+	
+	public function setNetwork($network)
+	{
+		$this->data["network"] = $network;
+	}
+	
+	public function setVersion($version)
+	{
+		$this->data["version"] = $version;
+	}
+	
+	public function setData($data)
+	{
+		$this->data["data"] = $data;
+	}
+	
+	public function setSignature($signature)
+	{
+		$this->data["signature"] = $signature;
+	}
+	
+	public function setHeader($public_key_hash, $ephemeral_public_key, $transaction_id)
+	{
+		
+		$this->data["header"] = array(
+			"public_key_hash" => $public_key_hash,
+			"ephemeral_public_key" => $ephemeral_public_key,
+			"transaction_id" => $transaction_id
+		);
+	}
+	
+	public function setType($type)
+	{
+		$this->data["type"] = $type;
+	}
+	
+	public function setDynamicDescriptor($dynamic_descriptor)
+	{
+		$this->data["dynamic_descriptor"] = $dynamic_descriptor;
+	}
+	
+	public function setTokenOriginator($store_id, $api_token)
+	{
+		$this->data["token_originator"] = array (
+			"store_id" => $store_id,
+			"api_token" => $api_token
+		);
+	}
+}
+
+class GooglePayPreauth extends Transaction
+{
+	
+	private $template = array (
+		"order_id" => null,
+		"amount" => null,
+		"cust_id" => null,
+		"network" => null,
+		"payment_token" => null,
+		"dynamic_descriptor" => null
+	);
+	
+	public function __construct()
+	{
+		$this->rootTag = "googlepay_preauth";
+		$this->data = $this->template;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setAmount($amount)
+	{
+		$this->data["amount"] = $amount;
+	}
+	
+	public function setCustId($cust_id)
+	{
+		$this->data["cust_id"] = $cust_id;
+	}
+	
+	public function setNetwork($network)
+	{
+		$this->data["network"] = $network;
+	}
+	
+	public function setDynamicDescriptor($dynamicDescriptor)
+	{
+		$this->data["dynamic_descriptor"] = $dynamicDescriptor;
+	}
+	
+	public function setPaymentToken($signature, $protocol_version, $signed_message)
+	{
+		
+		$this->data["payment_token"] = array (
+			"signature" => $signature,
+			"protocol_version" => $protocol_version,
+			"signed_message" => $signed_message
+		);
+	}
+}
+
+class GooglePayPurchase extends Transaction
+{
+	
+	private $template = array (
+		"order_id" => null,
+		"amount" => null,
+		"cust_id" => null,
+		"network" => null,
+		"payment_token" => null,
+		"dynamic_descriptor" => null
+	);
+	
+	public function __construct()
+	{
+		$this->rootTag = "googlepay_purchase";
+		$this->data = $this->template;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setAmount($amount)
+	{
+		$this->data["amount"] = $amount;
+	}
+	
+	public function setCustId($cust_id)
+	{
+		$this->data["cust_id"] = $cust_id;
+	}
+	
+	public function setNetwork($network)
+	{
+		$this->data["network"] = $network;
+	}
+	
+	public function setDynamicDescriptor($dynamicDescriptor)
+	{
+		$this->data["dynamic_descriptor"] = $dynamicDescriptor;
+	}
+	
+	public function setPaymentToken($signature, $protocol_version, $signed_message)
+	{
+		
+		$this->data["payment_token"] = array (
+			"signature" => $signature,
+			"protocol_version" => $protocol_version,
+			"signed_message" => $signed_message
+		);
+	}
+}
+
+class MpiCardLookup extends Transaction {
+	
+	private $template = array (
+		"order_id" => null,
+		"data_key" => null,
+		"pan" => null,
+		"notification_url" => null
+	);
+	
+	public function __construct()
+	{
+		$this->is3Dsecure2Transaction = true; 
+		$this->rootTag = "card_lookup";
+		$this->data = $this->template;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setDataKey($data_key)
+	{
+		$this->data["data_key"] = $data_key;
+	}
+	
+	public function setPan($pan)
+	{
+		$this->data["pan"] = $pan;
+	}
+	
+	public function setNotificationUrl($notification_url)
+	{
+		$this->data["notification_url"] = $notification_url;
+	}
+}
+
+class MpiThreeDSAuthentication extends Transaction {
+	
+	private $template = array (
+		"order_id" => null,
+		"data_key" => null,
+		"cardholder_name" => null,
+		"pan" => null,
+		"expdate" => null,
+		"amount" => null,
+		"currency" => null,
+		"threeds_completion_ind" => null,
+		"request_type" => null,
+		"notification_url" => null,
+		"purchase_date" => null,
+		"challenge_windowsize" => null,
+		"bill_address1" => null,
+		"bill_province" => null,
+		"bill_city" => null,
+		"bill_postal_code" => null,
+		"bill_country" => null,
+		"ship_address1" => null,
+		"ship_province" => null,
+		"ship_city" => null,
+		"ship_postal_code" => null,
+		"ship_country" => null,
+		"browser_useragent" => null,
+		"browser_java_enabled" => null,
+		"browser_screen_height" => null,
+		"browser_screen_width" => null,
+		"browser_language" => null,
+		"email" => null,
+		"request_challenge" => null
+	);
+	
+	public function __construct()
+	{
+		$this->is3Dsecure2Transaction = true; 
+		$this->rootTag = "threeds_authentication";
+		$this->data = $this->template;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setDataKey($data_key)
+	{
+		$this->data["data_key"] = $data_key;
+	}
+	
+	public function setCardholderName($cardholder_name)
+	{
+		$this->data["cardholder_name"] = $cardholder_name;
+	}
+	
+	public function setPan($pan)
+	{
+		$this->data["pan"] = $pan;
+	}
+	
+	public function setExpdate($expdate)
+	{
+		$this->data["expdate"] = $expdate;
+	}
+	
+	public function setAmount($amount)
+	{
+		$this->data["amount"] = $amount;
+	}
+	
+	public function setCurrency($currency)
+	{
+		$this->data["currency"] = $currency;
+	}
+	
+	public function setThreeDSCompletionInd($threeds_completion_ind)
+	{
+		$this->data["threeds_completion_ind"] = $threeds_completion_ind;
+	}
+	
+	public function setRequestType($request_type)
+	{
+		$this->data["request_type"] = $request_type;
+	}
+	
+	public function setNotificationURL($notification_url)
+	{
+		$this->data["notification_url"] = $notification_url;
+	}
+	
+	public function setPurchaseDate($purchase_date)
+	{
+		$this->data["purchase_date"] = $purchase_date;
+	}
+	
+	public function setChallengeWindowSize($challenge_windowsize)
+	{
+		$this->data["challenge_windowsize"] = $challenge_windowsize;
+	}
+	
+	public function setBillAddress1($bill_address1)
+	{
+		$this->data["bill_address1"] = $bill_address1;
+	}
+	
+	public function setBillProvince($bill_province)
+	{
+		$this->data["bill_province"] = $bill_province;
+	}
+	
+	public function setBillCity($bill_city)
+	{
+		$this->data["bill_city"] = $bill_city;
+	}
+	
+	public function setBillPostalCode($bill_postal_code)
+	{
+		$this->data["bill_postal_code"] = $bill_postal_code;
+	}
+	
+	public function setBillCountry($bill_country)
+	{
+		$this->data["bill_country"] = $bill_country;
+	}
+	
+	public function setShipAddress1($ship_address1)
+	{
+		$this->data["ship_address1"] = $ship_address1;
+	}
+	
+	public function setShipProvince($ship_province)
+	{
+		$this->data["ship_province"] = $ship_province;
+	}
+	
+	public function setShipCity($ship_city)
+	{
+		$this->data["ship_city"] = $ship_city;
+	}
+	
+	public function setShipPostalCode($ship_postal_code)
+	{
+		$this->data["ship_postal_code"] = $ship_postal_code;
+	}
+	
+	public function setShipCountry($ship_country)
+	{
+		$this->data["ship_country"] = $ship_country;
+	}
+	
+	public function setBrowserUserAgent($browser_useragent)
+	{
+		$this->data["browser_useragent"] = $browser_useragent;
+	}
+	
+	public function setBrowserJavaEnabled($browser_java_enabled)
+	{
+		$this->data["browser_java_enabled"] = $browser_java_enabled;
+	}
+	
+	public function setBrowserScreenHeight($browser_screen_height)
+	{
+		$this->data["browser_screen_height"] = $browser_screen_height;
+	}
+	
+	public function setBrowserScreenWidth($browser_screen_width)
+	{
+		$this->data["browser_screen_width"] = $browser_screen_width;
+	}
+	
+	public function setBrowserLanguage($browser_language)
+	{
+		$this->data["browser_language"] = $browser_language;
+	}
+	
+	public function setEmail($email)
+	{
+		$this->data["email"] = $email;
+	}
+	
+	public function setRequestChallenge($request_challenge)
+	{
+		$this->data["request_challenge"] = $request_challenge;
+	}
+}
+
+class MpiCavvLookup extends Transaction {
+	
+	private $template = array (
+		"cres" => null
+	);
+	
+	public function __construct()
+	{
+		$this->is3Dsecure2Transaction = true;
+		$this->rootTag = "cavv_lookup";
+		$this->data = $this->template;
+	}
+	
+	public function setCRes($cres)
+	{
+		$this->data["cres"] = $cres;
 	}
 }
 ?>
