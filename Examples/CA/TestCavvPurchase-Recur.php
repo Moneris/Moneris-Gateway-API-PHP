@@ -46,8 +46,9 @@ $txnArray=array(
 			//'data_type'=> "3DSecure", //set only for Interac e-commerce
 			'dynamic_descriptor'=>$dynamic_descriptor,
 			'threeds_version' => '2', //Mandatory for 3DS Version 2.0+
-			'threeds_server_trans_id' => 'e11d4985-8d25-40ed-99d6-c3803fe5e68f' //Mandatory for 3DS Version 2.0+ - obtained from MpiCavvLookup or MpiThreeDSAuthentication 
-	           );
+			'threeds_server_trans_id' => 'e11d4985-8d25-40ed-99d6-c3803fe5e68f', //Mandatory for 3DS Version 2.0+ - obtained from MpiCavvLookup or MpiThreeDSAuthentication 
+	        //'ds_trans_id' => '12345' //Optional - to be used only if you are using 3rd party 3ds 2.0 service
+		);
 
 /*********************** Recur Associative Array **********************/
 

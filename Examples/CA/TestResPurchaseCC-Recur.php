@@ -12,15 +12,16 @@ require "../../mpgClasses.php";
 
 /************************ Request Variables **********************************/
 
-$store_id='store5';
-$api_token='yesguy';
+$store_id='store1';
+$api_token='yesguy1';
 
 /************************ Transaction Variables ******************************/
 
-$data_key='t8RCndWBNFNt4Dx32CCnl2tlz';
 $orderid='res-purch-'.date("dmy-G:i:s");
 $amount='1.00';
-$custid='cust';
+$data_key='4INQR1A8ocxD0oafSz50LADXy';
+$custid='customer1';	//if sent will be submitted, otherwise cust_id from profile will be used
+$expdate = '1901'; //YYMM - used only for temp token
 $crypt_type='1';
 
 /************************** CVD Variables *****************************/
@@ -40,7 +41,7 @@ $mpgCvdInfo = new mpgCvdInfo ($cvdTemplate);
 /************************** Recur Variables *****************************/
 
 $recurUnit = 'day';
-$startDate = '2015/11/30';
+$startDate = '2022/11/30';
 $numRecurs = '4';
 $recurInterval = '10';
 $recurAmount = '31.00';
@@ -65,8 +66,11 @@ $txnArray=array('type'=>'res_purchase_cc',
 		        'order_id'=>$orderid,
 		        'cust_id'=>$custid,
 		        'amount'=>$amount,
-		        'crypt_type'=>$crypt_type
-		         );
+		        'crypt_type'=>$crypt_type,
+				'threeds_version' => '2', //Mandatory for 3DS Version 2.0+
+				'threeds_server_trans_id' => 'e11d4985-8d25-40ed-99d6-c3803fe5e68f', //Mandatory for 3DS Version 2.0+ - obtained from MpiCavvLookup or MpiThreeDSAuthentication 
+				//'ds_trans_id' => '12345' //Optional - to be used only if you are using 3rd party 3ds 2.0 service  
+		        );
 
 /************************ Transaction Object *******************************/
 

@@ -30,6 +30,15 @@ $txnArray =array('type'=>'res_oct_payment_cc',
 
 $mpgTxn = new mpgTransaction($txnArray);
 
+/******************* Credential on File **********************************/
+
+$cof = new CofInfo();
+$cof->setPaymentIndicator("U");
+$cof->setPaymentInformation("2");
+$cof->setIssuerId("168451306048014");
+
+$mpgTxn->setCofInfo($cof);
+
 /************************ Request Object **********************************/
 
 $mpgRequest = new mpgRequest($mpgTxn);

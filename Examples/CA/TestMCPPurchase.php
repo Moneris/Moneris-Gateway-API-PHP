@@ -25,7 +25,7 @@ $status_check = 'false';
 $mcp_version = '1.0';
 $cardholder_amount = '100';
 $cardholder_currency_code = '840';
-$mcp_rate_token = 'P1536163325404090';
+$mcp_rate_token = 'P1623168881388718';
 
 /*********************** Transactional Associative Array **********************/
 

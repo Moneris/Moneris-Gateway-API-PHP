@@ -1,3 +1,18 @@
+Version 1.0.23:
+	- Added “ds_trans_id” variable for CavvPreauth, CavvPurchase, ResCavvPurchase, and ResCavvPreauth. 
+	- Added 3DS 2.0 within the TestCanadaCavvPurchaseRecur transaction type 
+	- Created additional MCP transaction types to support 3DS 2.0  (MCPCavvPreauth and MCPCavvPurchase)
+	- Created additional MCP vault transaction types to support 3DS 2.0  (MCPResCavvPreauth and MCPResCavvPurchase)
+	
+Version 1.0.22:
+	- Updated API to use the new URLs
+	- Canada QA will point to mpg1t.moneris.io
+	- Canada Production will point to mpg1.moneris.io
+	- Removed support for US transactions as they are no longer supported
+
+Version 1.0.21:
+	- Added support for setFinalAuth in ApplePayPreauth, CavvPreauth, GooglePayPreauth, MCPPreauth, MCPResPreauthCC, Preauth, ResCavvPreauthCC, ResPreauthCC 
+	
 Version 1.0.20:
 	- Added support for 3DS 2.0 transactions
 	- Added support for 3DS 2.0 methods in Cavv transactions

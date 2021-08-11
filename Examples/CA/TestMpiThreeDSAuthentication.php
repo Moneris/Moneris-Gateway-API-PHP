@@ -68,4 +68,12 @@ print("\nTransStatus = " . $mpgResponse->getMpiTransStatus());
 print("\nChallengeURL = " . $mpgResponse->getMpiChallengeURL());
 print("\nChallengeData = " . $mpgResponse->getMpiChallengeData());
 print("\nThreeDSServerTransId = " . $mpgResponse->getMpiThreeDSServerTransId());
+
+//In Frictionless flow, you may receive TransStatus as "Y", 
+//in which case you can then proceed directly to Cavv Purchase/Preauth with values below'
+if($mpgResponse->getMpiTransStatus() == "Y")
+{
+ print("\nCavv = " . $mpgResponse->getMpiCavv());
+ print("\nECI = " . $mpgResponse->getMpiEci());
+}
 ?>

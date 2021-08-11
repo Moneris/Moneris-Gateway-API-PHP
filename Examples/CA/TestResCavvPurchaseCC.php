@@ -4,18 +4,18 @@ require "../../mpgClasses.php";
 
 /************************ Request Variables **********************************/
 
-$store_id='store5';
-$api_token='yesguy';
+$store_id='store1';
+$api_token='yesguy1';
 
 /************************ Transaction Variables ******************************/
 
-$data_key='t8RCndWBNFNt4Dx32CCnl2tlz';
-$orderid='res-purchase-'.date("dmy-G:i:s");
+$data_key='4INQR1A8ocxD0oafSz50LADXy';
+$orderid='res-preauth-'.date("dmy-G:i:s");
 $amount='1.00';
 $cavv='AAABBJg0VhI0VniQEjRWAAAAAAA';
-$custid='cust';	//if sent will be submitted, otherwise cust_id from profile will be used
-$expdate = '1902'; //YYMM - used only for temp token
-$crypt_type = '6'; //value obtained from MpiACS transaction
+$custid='customer1';	//if sent will be submitted, otherwise cust_id from profile will be used
+$expdate = '1901'; //YYMM - used only for temp token
+//$crypt_type = '6'; //value obtained from MpiACS transaction
 
 /************************ Transaction Array **********************************/
 
@@ -25,12 +25,13 @@ $txnArray =array('type'=>'res_cavv_purchase_cc',
 				 'cust_id'=>$custid,
 				 'amount'=>$amount,
 				 'cavv'=>$cavv,
-				 //'expdate'=>$expdate,  //mandatory for temp tokens only
+				 'expdate'=>$expdate,  //mandatory for temp tokens only
 				 //'crypt_type'=>$crypt_type, //set for AMEX SafeKey only
-				'dynamic_descriptor'=>'12346',
-				'threeds_version' => '2', //Mandatory for 3DS Version 2.0+
-				'threeds_server_trans_id' => 'e11d4985-8d25-40ed-99d6-c3803fe5e68f' //Mandatory for 3DS Version 2.0+ - obtained from MpiCavvLookup or MpiThreeDSAuthentication 
-				 );
+				 //'dynamic_descriptor'=>'12346',
+				 'threeds_version' => '2', //Mandatory for 3DS Version 2.0+
+				 'threeds_server_trans_id' => 'e11d4985-8d25-40ed-99d6-c3803fe5e68f', //Mandatory for 3DS Version 2.0+ - obtained from MpiCavvLookup or MpiThreeDSAuthentication 
+				 //'ds_trans_id' => '12345' //Optional - to be used only if you are using 3rd party 3ds 2.0 service
+			);
 
 /************************ Transaction Object *******************************/
 
