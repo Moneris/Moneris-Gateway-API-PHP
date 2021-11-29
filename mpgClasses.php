@@ -1467,7 +1467,7 @@ class mpgResponse
 
 	public function getMpiEci()
 	{
-		if($this>isMPI2)
+		if($this->isMPI2)
 		{
 			return $this->getMpgResponseValue($this->responseData,'ECI');
 		}
