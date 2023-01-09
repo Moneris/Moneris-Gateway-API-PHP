@@ -112,7 +112,7 @@ print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nAVSResponse = " . $mpgResponse->getAvsResultCode());
 print("\nCVDResponse = " . $mpgResponse->getCvdResultCode());
-
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>
 

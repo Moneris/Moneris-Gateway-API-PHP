@@ -67,5 +67,6 @@ print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nCardLevelResult = " . $mpgResponse->getCardLevelResult());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>

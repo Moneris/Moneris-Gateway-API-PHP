@@ -42,7 +42,7 @@ class httpsPost
 	var $clientTimeOut;
 	var $apiVersion;
 	var $response;
-	var $debug = FALSE; //default is false for production release
+	var $debug = false; //default is false for production release
 
 	public function __construct($url, $dataToSend)
 	{
@@ -357,9 +357,22 @@ class mpgResponse
  	//KountInfo
  	var $isKount = false;
 
+	//specifically for Installment Plans
+	var $currentPlanID;
+	var $tacHash = array();
+	var $planDataHash = array();
+	var $tacDataHash = array();
+	var $installmentResHash = array();
+
+	var $isInstallmentPlan = false;
+	var $isInstallmentResult = false;
+	var $inTac = false;
+	var $inPromotion = false;
+	var $inFirstInstallment = false;
+	var $inLastInstallment = false;
+
  	public function __construct($xmlString)
  	{
-
   		$this->p = xml_parser_create();
   		xml_parser_set_option($this->p,XML_OPTION_CASE_FOLDING,0);
   		xml_parser_set_option($this->p,XML_OPTION_TARGET_ENCODING,"UTF-8");
@@ -371,11 +384,101 @@ class mpgResponse
 
  	}	//end of constructor
 
-
  	public function getMpgResponseData()
 	{
    		return($this->responseData);
  	}
+
+
+	public function getEligibleInstallmentPlans()
+	{
+		if(is_null($this->planDataHash) or !($this->planDataHash)) 
+		{
+			$installmentPlans = array();
+			$eligibleInstallmentPlans = new EligibleInstallmentPlans();
+			$eligibleInstallmentPlans->setInstallmentPlans($installmentPlans);
+			return $eligibleInstallmentPlans;
+		}
+		
+		$planCount = count($this->planDataHash);
+		
+		$pIndx = 0;
+		$installmentPlans = array();
+		
+		foreach($this->planDataHash as $planID=>$plan_value)
+		{
+			$installmentPlans[$pIndx] = new PlanDetails();
+			$installmentPlans[$pIndx]->setPlanId($planID);
+			$installmentPlans[$pIndx]->setPlanIdRef($this->planDataHash[$planID]["PlanDetails"]["PlanIdRef"]);
+			$installmentPlans[$pIndx]->setName($this->planDataHash[$planID]["PlanDetails"]["Name"]);
+			$installmentPlans[$pIndx]->setType($this->planDataHash[$planID]["PlanDetails"]["Type"]);
+			$installmentPlans[$pIndx]->setNumInstallments($this->planDataHash[$planID]["PlanDetails"]["NumInstallments"]);
+			$installmentPlans[$pIndx]->setInstallmentFrequency($this->planDataHash[$planID]["PlanDetails"]["InstallmentFrequency"]);
+			$installmentPlans[$pIndx]->setAPR($this->planDataHash[$planID]["PlanDetails"]["Apr"]);
+			$installmentPlans[$pIndx]->setTotalFees($this->planDataHash[$planID]["PlanDetails"]["TotalFees"]);
+			$installmentPlans[$pIndx]->setTotalPlanCost($this->planDataHash[$planID]["PlanDetails"]["TotalPlanCost"]);
+
+			$promotionInfo = new PromotionInfo();
+			$promotionInfo->setPromotionCode($this->planDataHash[$planID]["PromotionInfo"]["PromotionCode"]);
+			$promotionInfo->setPromotionId($this->planDataHash[$planID]["PromotionInfo"]["PromotionId"]);
+			$installmentPlans[$pIndx]->setPromotionInfo($promotionInfo);
+			
+			$firstInstallment = new FirstInstallment();
+			$firstInstallment->setUpfrontFee($this->planDataHash[$planID]["FirstInstallment"]["UpfrontFee"]);
+			$firstInstallment->setInstallmentFee($this->planDataHash[$planID]["FirstInstallment"]["InstallmentFee"]);
+			$firstInstallment->setAmount($this->planDataHash[$planID]["FirstInstallment"]["Amount"]);
+			$installmentPlans[$pIndx]->setFirstInstallment($firstInstallment);
+			
+			$lastInstallment = new LastInstallment();
+			$lastInstallment->setInstallmentFee($this->planDataHash[$planID]["LastInstallment"]["InstallmentFee"]);
+			$lastInstallment->setAmount($this->planDataHash[$planID]["LastInstallment"]["Amount"]);
+			$installmentPlans[$pIndx]->setLastInstallment($lastInstallment);
+			
+			$tacCount = count($this->tacHash[$planID]);
+			$tacs = array();
+			$tacIdx = 0;
+			
+			foreach($this->tacHash[$planID] as $tacHash_key=>$tac)
+			{
+				$tacs[$tacIdx] = new TACDetails();
+				$tacs[$tacIdx]->setText($tac["Text"]);
+				$tacs[$tacIdx]->setUrl($tac["Url"]);
+				$tacs[$tacIdx]->setVersion($tac["Version"]);
+				$tacs[$tacIdx]->setLanguageCode($tac["LanguageCode"]);
+				
+				$tacIdx++;
+			}
+
+			$tac = new TAC();
+			$tac->setTacs($tacs);
+			$installmentPlans[$pIndx]->setTac($tac);
+			
+			$pIndx++;
+		}
+		
+		$eligibleInstallmentPlans = new EligibleInstallmentPlans();
+		$eligibleInstallmentPlans->setInstallmentPlans($installmentPlans);
+		
+		return $eligibleInstallmentPlans;
+	}
+
+	public function getInstallmentResults()
+	{
+		$installmentResults = new InstallmentResults();
+		if(!($this->installmentResHash) or is_null($this->installmentResHash))
+		{
+			return $installmentResults;
+		}
+		
+		$installmentResults->setPlanId($this->installmentResHash["PlanId"]);
+		$installmentResults->setPlanIdRef($this->installmentResHash["PlanIdRef"]);
+		$installmentResults->setPlanAcceptanceId($this->installmentResHash["PlanAcceptanceId"]);
+		$installmentResults->setPlanResponse($this->installmentResHash["PlanResponse"]);
+		$installmentResults->setPlanStatus($this->installmentResHash["PlanStatus"]);
+		$installmentResults->setTacVersion($this->installmentResHash["TacVersion"]);
+		
+		return $installmentResults;
+	}
  	
  	//To prevent Undefined Index Notices
  	private function getMpgResponseValue($responseData, $value)
@@ -556,6 +659,28 @@ class mpgResponse
 	public function getIssuerId()
 	{
 		return $this->getMpgResponseValue($this->responseData,'IssuerId');
+	}
+
+	//NT Response
+	public function getNTResponseCode()
+	{
+		return $this->getMpgResponseValue($this->responseData,'NTResponseCode');
+	}
+	public function getNTMessage()
+	{
+		return $this->getMpgResponseValue($this->responseData,'NTMessage');
+	}
+	public function getNTUsed()
+	{
+		return $this->getMpgResponseValue($this->responseData,'NTUsed');
+	}
+	public function getNTMaskedToken()
+	{
+		return $this->getMpgResponseValue($this->responseData,'NTMaskedToken');
+	}
+	public function getSourcePanLast4()
+	{
+		return $this->getMpgResponseValue($this->responseData,'SourcePanLast4');
 	}
 	
 	//--------------------------- RecurUpdate response fields ----------------------------//
@@ -1467,7 +1592,7 @@ class mpgResponse
 
 	public function getMpiEci()
 	{
-		if($this>isMPI2)
+		if($this->isMPI2)
 		{
 			return $this->getMpgResponseValue($this->responseData,'ECI');
 		}
@@ -1727,7 +1852,6 @@ class mpgResponse
 
 	private function startHandler($parser,$name,$attrs)
 	{
-
 		$this->currentTag=$name;
 		$this->currentTagValue = "";
 
@@ -1826,6 +1950,30 @@ class mpgResponse
    		{
    			$this->isKount = true;
    		}
+		elseif ($this->currentTag == "EligibleInstallmentPlans")
+		{
+			$this->isInstallmentPlan = true;
+			$this->planDataHash = array();
+		}
+		elseif ($this->isInstallmentPlan)
+		{
+			if($this->currentTag == "TacDetails") {
+				$this->tacDataHash = array();
+				$this->inTac = true;
+			}
+			if($this->currentTag == "PromotionInfo") {
+				$this->inPromotion = true;
+			}
+			if($this->currentTag == "FirstInstallment")
+				$this->inFirstInstallment = true;
+			if($this->currentTag == "LastInstallment")
+				$this->inLastInstallment = true;
+		}
+		elseif ($this->currentTag == "InstallmentResults")
+		{
+			$this->isInstallmentResult = true;
+			$this->installmentResHash = array();
+		}
 	}
 
 	private function endHandler($parser,$name)
@@ -1943,12 +2091,65 @@ class mpgResponse
 		{
 			$this->responseData["KountInfo"] .= "<" .$this->currentTag . ">" . $this->currentTagValue . "</" . $this->currentTag . ">";
 		}
+		elseif($this->isInstallmentPlan)
+		{
+			if ($this->currentTag == "PlanId")
+			{
+				$this->currentPlanID = $this->currentTagValue;
+				// $this->planDataHash[$this->currentPlanID]=array();
+
+				$this->planDataHash[$this->currentPlanID]=array("PlanDetails" => array("PlanId"=>$this->currentPlanID),
+																"PromotionInfo" => array(),
+																"FirstInstallment" => array(),
+																"LastInstallment" => array());
+
+				// $this->planDataHash[$this->currentPlanID]=array("PromotionInfo" => array());
+				// $this->planDataHash[$this->currentPlanID]=array("FirstInstallment" => array());
+				// $this->planDataHash[$this->currentPlanID]=array("LastInstallment" => array());
+				// $this->planDataHash[$this->currentPlanID]["PlanDetails"]=array("PlanId"=>$this->currentPlanID);
+
+				$this->tacHash[$this->currentPlanID]=array();
+			}
+			elseif ($this->inTac and is_null($this->currentPlanID) == 0)
+			{
+				if ($this->currentTag == "LanguageCode")
+				{
+					$this->tacDataHash[$this->currentTag]=$this->currentTagValue;
+					array_push($this->tacHash[$this->currentPlanID],$this->tacDataHash);
+					// $this->inTac = false;
+				}
+				else
+				{
+					$this->tacDataHash[$this->currentTag]=$this->currentTagValue;
+				}
+			}
+			elseif ($this->inPromotion and is_null($this->currentPlanID) == 0)
+			{
+				$this->planDataHash[$this->currentPlanID]["PromotionInfo"][$this->currentTag]=$this->currentTagValue;
+			}
+			elseif ($this->inFirstInstallment and is_null($this->currentPlanID) == 0)
+			{
+				$this->planDataHash[$this->currentPlanID]["FirstInstallment"][$this->currentTag]=$this->currentTagValue;
+			}
+			elseif ($this->inLastInstallment and is_null($this->currentPlanID) == 0)
+			{
+				$this->planDataHash[$this->currentPlanID]["LastInstallment"][$this->currentTag]=$this->currentTagValue;
+			}
+			elseif (is_null($this->currentPlanID) == 0)
+			{
+				$this->planDataHash[$this->currentPlanID]["PlanDetails"][$this->currentTag]=$this->currentTagValue;
+			}
+		}
+		elseif ($this->isInstallmentResult && $this->currentTagValue != 'null')
+		{
+			$this->installmentResHash[$this->currentTag]=$this->currentTagValue;
+		}
 		else
 		{
 			$this->responseData[$this->currentTag] = $this->currentTagValue;
 		}
 
-		//------------------ Storing  data in hash done --------------------
+		//------------------ Storing data in hash done --------------------
 		
 	 	if($this->currentTag == "ResolveData")
 		{
@@ -2019,6 +2220,30 @@ class mpgResponse
 	   	{
 	   		$this->isKount = false;
 	   	}
+		elseif ($this->currentTag == "EligibleInstallmentPlans")
+		{
+			$this->isInstallmentPlan=0;
+		}
+		elseif ($this->currentTag == "TacDetails")
+		{
+			$this->inTac=0;
+		}
+		elseif ($this->currentTag == "PromotionInfo")
+		{
+			$this->inPromotion=0;
+		}
+		elseif ($this->currentTag == "FirstInstallment")
+		{
+			$this->inFirstInstallment=0;
+		}
+		elseif ($this->currentTag == "LastInstallment")
+		{
+			$this->inLastInstallment=0;
+		}
+		elseif ($this->currentTag == "InstallmentResults")
+		{
+			$this->isInstallmentResult=0;
+		}
 
  		$this->currentTag="/dev/null";
 	}
@@ -2034,9 +2259,9 @@ class mpgRequest
  	var $txnTypes =array(
  				//Basic
  				'batchclose' => array('ecr_number'),
- 				'card_verification' =>array('order_id','cust_id','pan','expdate', 'crypt_type'),
- 				'cavv_preauth' =>array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type','dynamic_descriptor', 'wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id'),
- 				'cavv_purchase' => array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type', 'dynamic_descriptor', 'network', 'data_type','wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id', 'ds_trans_id'),
+ 				'card_verification' =>array('order_id','cust_id','pan','expdate', 'crypt_type', 'tr_id', 'token_cryptogram'),
+ 				'cavv_preauth' =>array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type','dynamic_descriptor', 'wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'tr_id', 'token_cryptogram'),
+ 				'cavv_purchase' => array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type', 'dynamic_descriptor', 'network', 'data_type','wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id', 'ds_trans_id', 'tr_id', 'token_cryptogram'),
  				'completion' => array('order_id', 'comp_amount','txn_number', 'crypt_type', 'cust_id', 'dynamic_descriptor', 'ship_indicator'),
  				'contactless_purchase' => array('order_id','cust_id','amount','track2','pan','expdate', 'pos_code','dynamic_descriptor'),
  				'contactless_purchasecorrection' => array('order_id','txn_number'),
@@ -2044,8 +2269,8 @@ class mpgRequest
  				'forcepost'=> array('order_id','cust_id','amount','pan','expdate','auth_code','crypt_type','dynamic_descriptor'),
  				'ind_refund' => array('order_id','cust_id', 'amount','pan','expdate', 'crypt_type','dynamic_descriptor'),
 	 			'opentotals' => array('ecr_number'),
-	 			'preauth' =>array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'market_indicator', 'cm_id', 'final_auth'),
-	 			'purchase'=> array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'market_indicator', 'cm_id'),
+	 			'preauth' =>array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'market_indicator', 'cm_id', 'final_auth', 'tr_id', 'token_cryptogram'),
+	 			'purchase'=> array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'market_indicator', 'cm_id', 'tr_id', 'token_cryptogram'),
 	 			'purchasecorrection' => array('order_id', 'txn_number', 'crypt_type', 'cust_id', 'dynamic_descriptor'),
 	 			'reauth' =>array('order_id','cust_id', 'amount', 'orig_order_id', 'txn_number', 'crypt_type', 'dynamic_descriptor'),
 	 			'recur_update' => array('order_id','cust_id','pan','expdate','recur_amount','add_num_recurs','total_num_recurs','hold','terminate'),
@@ -2071,9 +2296,9 @@ class mpgRequest
  				//Vault
  				'res_add_cc' => array('cust_id','phone','email','note','pan','expdate','crypt_type', 'data_key_format'),
 				'res_add_token' => array('data_key','cust_id','phone','email','note','expdate','crypt_type', 'data_key_format'),
- 				'res_card_verification_cc' => array('data_key','order_id', 'crypt_type', 'expdate'),
- 				'res_cavv_preauth_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id'),
- 				'res_cavv_purchase_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id'),
+ 				'res_card_verification_cc' => array('data_key','order_id', 'crypt_type', 'expdate', 'get_nt_response'),
+ 				'res_cavv_preauth_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'get_nt_response'),
+ 				'res_cavv_purchase_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'get_nt_response'),
  				'res_delete' => array('data_key'),
  				'res_get_expiring' => array(),
  				'res_ind_refund_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor'),
@@ -2081,8 +2306,8 @@ class mpgRequest
  				'res_lookup_full' => array('data_key'),
 				'res_lookup_masked' => array('data_key'),
  				'res_mpitxn' => array('data_key','xid','amount','MD','merchantUrl','accept','userAgent','expdate'),
- 				'res_preauth_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator', 'final_auth'),
- 				'res_purchase_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator'),
+ 				'res_preauth_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator', 'final_auth', 'get_nt_response'),
+ 				'res_purchase_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator', 'get_nt_response'),
  				'res_temp_add' => array('pan','expdate','crypt_type','duration', 'data_key_format', 'anc1'),
  				'res_temp_tokenize' => array('order_id', 'txn_number', 'duration', 'crypt_type'),
 				'res_tokenize_cc' => array('order_id','txn_number','cust_id','phone','email','note', 'data_key_format'),
@@ -2247,9 +2472,26 @@ class mpgRequest
  				'mcp_res_cavv_preauth_cc' => array('data_key', 'order_id', 'cust_id', 'amount', 'cavv', 'expdate', 'crypt_type', 'dynamic_descriptor', 'threeds_version', 'threeds_server_trans_id', 'ds_trans_id', 'mcp_version', 'cardholder_amount', 'cardholder_currency_code', 'mcp_rate_token'),
  				'mcp_res_cavv_purchase_cc' => array('data_key', 'order_id', 'cust_id', 'amount', 'cavv', 'expdate', 'crypt_type', 'dynamic_descriptor', 'threeds_version', 'threeds_server_trans_id', 'ds_trans_id', 'mcp_version', 'cardholder_amount', 'cardholder_currency_code', 'mcp_rate_token'),
 
+				//Apple Pay
+				'applepay_token_purchase' => array('order_id', 'cust_id', 'amount', 'displayName', 'network', 'version', 'data', 'signature', 'header', 'type', 'dynamic_descriptor', 'token_originator'),
+				'applepay_token_preauth' => array('order_id', 'cust_id', 'amount', 'displayName', 'network', 'version', 'data', 'signature', 'header', 'type', 'dynamic_descriptor', 'token_originator', 'final_auth'),
+				'applepay_mcp_purchase' => array('order_id', 'cust_id', 'amount', 'displayName', 'network', 'version', 'data', 'signature', 'header', 'type', 'dynamic_descriptor', 'token_originator', 'mcp_version', 'mcp_rate_token', 'cardholder_amount', 'cardholder_currency_code'),
+				'applepay_mcp_preauth' => array('order_id', 'cust_id', 'amount', 'displayName', 'network', 'version', 'data', 'signature', 'header', 'type', 'dynamic_descriptor', 'token_originator', 'final_auth', 'mcp_version', 'mcp_rate_token', 'cardholder_amount', 'cardholder_currency_code'),
+
+				//Google Pay
+				'googlepay_purchase' => array('order_id', 'amount', 'cust_id', 'network', 'payment_token', 'dynamic_descriptor'),
+				'googlepay_preauth' => array('order_id', 'amount', 'cust_id', 'network', 'payment_token', 'dynamic_descriptor', 'final_auth'),
+				'googlepay_mcp_purchase' => array('order_id', 'amount', 'cust_id', 'network', 'payment_token', 'dynamic_descriptor', 'mcp_version', 'mcp_rate_token', 'cardholder_amount', 'cardholder_currency_code'),
+				'googlepay_mcp_preauth' => array('order_id', 'amount', 'cust_id', 'network', 'payment_token', 'dynamic_descriptor', 'final_auth', 'mcp_version', 'mcp_rate_token', 'cardholder_amount', 'cardholder_currency_code'),
+
  				//OCTPayment transactions
  				'oct_payment' => array('order_id','cust_id', 'amount','pan','expdate', 'crypt_type','dynamic_descriptor'),
- 				'res_oct_payment_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor')
+ 				'res_oct_payment_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor'),
+			
+				//Installment Plans
+				'installment_info' => array('plan_id', 'plan_id_ref', 'tac_version'),
+				'installment_lookup' => array('order_id', 'amount','pan','expdate'),
+				'res_installment_lookup' => array('order_id', 'amount','data_key','expdate')
 			);
 
 	var $txnArray;
@@ -2453,6 +2695,12 @@ class mpgRequest
 			if($cof != null)
 			{
 				$txnXMLString .= $cof->toXML();
+			}
+
+			$installmentInfo = $txnObj->getInstallmentInfo();
+			if($installmentInfo != null)
+			{
+				$txnXMLString .= $installmentInfo->toXML();
 			}
 
    			$custInfo = $txnObj->getCustInfo();
@@ -2810,6 +3058,7 @@ class mpgTransaction
 	var $attributeAccountInfo = null;
 	var $level23Data = null;
 	var $mcpRateInfo = null;
+	var $installmentInfo = null;
 
 	public function __construct($txn)
 	{
@@ -2870,6 +3119,16 @@ class mpgTransaction
 	public function setCofInfo($cof)
 	{
 		$this->cof = $cof;	
+	}
+
+	public function getInstallmentInfo()
+	{
+		return $this->installmentInfo;
+	}
+
+	public function setInstallmentInfo($installmentInfo)
+	{
+		$this->installmentInfo = $installmentInfo;	
 	}
 	
 	public function getMCPRateInfo()
@@ -3438,17 +3697,13 @@ class riskHttpsPost{
 
 	}
 
-
-
 	public function getRiskResponse()
 	{
 		return $this->riskResponse;
-
 	}
 
 	public function toXML( )
 	{
-
 		$req=$this->riskRequest ;
 		$reqXMLString=$req->toXML();
 
@@ -3546,9 +3801,7 @@ class riskResponse{
 
 		if($this->isResults)
 		{
-			//print("\n".$this->currentTag."=".$data);
 			$this->results[$this->currentTag] = $data;
-			 
 		}
 
 		if($this->isRule)
@@ -5356,6 +5609,52 @@ class CofInfo
 
 }//end class
 
+class InstallmentInfo
+{
+	private $template = array(
+		'plan_id' => null,
+		'plan_id_ref' => null, 
+		'tac_version' => null);
+
+	private $data;
+
+	public function __construct()
+    {
+        $this->data = $this->template;
+    }
+
+	public function setPlanId($value)
+	{
+		$this->data['plan_id'] = $value;
+	}
+
+	public function setPlanIdRef($value)
+	{
+		$this->data['plan_id_ref'] = $value;
+	}
+
+	public function setTacVersion($value)
+	{
+		$this->data['tac_version'] = $value;
+	}
+
+	public function toXML()
+    {
+        $xmlString = "";
+
+        foreach($this->template as $key=>$value)
+		{
+			if($this->data[$key] != null || $this->data[$key] != "")
+			{
+				$xmlString .= "<$key>". $this->data[$key] ."</$key>";
+			}
+        }
+
+        return "<installment_info>$xmlString</installment_info>";
+    }
+
+}//end class
+
 class MCPRate
 {
 	private $template = array (
@@ -6013,6 +6312,246 @@ class ApplePayTokenPurchase extends Transaction
 
 }
 
+class ApplePayMCPPurchase extends Transaction
+{
+	
+	private $template = array (
+		"order_id" => null,
+		"cust_id" => null,
+		"amount" => null,
+		"displayName" => null,
+		"network" => null,
+		"version" => null,
+		"data" => null,
+		"signature" => null,
+		"header" => null,
+		"type" => null,
+		"dynamic_descriptor" => null,
+		"token_originator" => null,
+		"mcp_version" => null,
+		"mcp_rate_token" => null,
+		"cardholder_amount" => null,
+		"cardholder_currency_code" => null
+	);
+	
+	public function __construct()
+	{
+		$this->rootTag = "applepay_mcp_purchase";
+		$this->data = $this->template;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setCustId($cust_id)
+	{
+		$this->data["cust_id"] = $cust_id;
+	}
+	
+	public function setAmount($amount)
+	{
+		$this->data["amount"] = $amount;
+	}
+	
+	public function setDisplayName($display_name)
+	{
+		$this->data["displayName"] = $display_name;
+	}
+	
+	public function setNetwork($network)
+	{
+		$this->data["network"] = $network;
+	}
+	
+	public function setVersion($version)
+	{
+		$this->data["version"] = $version;
+	}
+	
+	public function setData($data)
+	{
+		$this->data["data"] = $data;
+	}
+	
+	public function setSignature($signature)
+	{
+		$this->data["signature"] = $signature;
+	}
+	
+	public function setHeader($public_key_hash, $ephemeral_public_key, $transaction_id)
+	{
+		
+		$this->data["header"] = array(
+			"public_key_hash" => $public_key_hash,
+			"ephemeral_public_key" => $ephemeral_public_key,
+			"transaction_id" => $transaction_id
+		);
+	}
+	
+	public function setType($type)
+	{
+		$this->data["type"] = $type;
+	}
+	
+	public function setDynamicDescriptor($dynamic_descriptor)
+	{
+		$this->data["dynamic_descriptor"] = $dynamic_descriptor;
+	}
+	
+	public function setTokenOriginator($store_id, $api_token)
+	{
+		$this->data["token_originator"] = array (
+			"store_id" => $store_id,
+			"api_token" => $api_token
+		);
+	}
+
+	public function setMCPVersion($mcp_version)
+	{
+		$this->data["mcp_version"] = $mcp_version;
+	}
+
+	public function setMCPRateToken($mcp_rate_token)
+	{
+		$this->data["mcp_rate_token"] = $mcp_rate_token;
+	}
+
+	public function setCardholderAmount($cardholder_amount)
+	{
+		$this->data["cardholder_amount"] = $cardholder_amount;
+	}
+
+	public function setCardholderCurrencyCode($cardholder_currency_code)
+	{
+		$this->data["cardholder_currency_code"] = $cardholder_currency_code;
+	}
+}
+
+class ApplePayMCPPreauth extends Transaction
+{
+	
+	private $template = array (
+		"order_id" => null,
+		"cust_id" => null,
+		"amount" => null,
+		"displayName" => null,
+		"network" => null,
+		"version" => null,
+		"data" => null,
+		"signature" => null,
+		"header" => null,
+		"type" => null,
+		"dynamic_descriptor" => null,
+		"token_originator" => null,
+		"final_auth" => null,
+		"mcp_version" => null,
+		"mcp_rate_token" => null,
+		"cardholder_amount" => null,
+		"cardholder_currency_code" => null
+	);
+	
+	public function __construct()
+	{
+		$this->rootTag = "applepay_mcp_preauth";
+		$this->data = $this->template;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setCustId($cust_id)
+	{
+		$this->data["cust_id"] = $cust_id;
+	}
+	
+	public function setAmount($amount)
+	{
+		$this->data["amount"] = $amount;
+	}
+		
+	public function setDisplayName($display_name)
+	{
+		$this->data["displayName"] = $display_name;
+	}
+	
+	public function setNetwork($network)
+	{
+		$this->data["network"] = $network;
+	}
+	
+	public function setVersion($version)
+	{
+		$this->data["version"] = $version;
+	}
+		
+	public function setData($data)
+	{
+		$this->data["data"] = $data;
+	}
+	
+	public function setSignature($signature)
+	{
+		$this->data["signature"] = $signature;
+	}
+	
+	public function setHeader($public_key_hash, $ephemeral_public_key, $transaction_id)
+	{
+		
+		$this->data["header"] = array(
+			"public_key_hash" => $public_key_hash,
+			"ephemeral_public_key" => $ephemeral_public_key,
+			"transaction_id" => $transaction_id
+		);
+	}
+	
+	public function setType($type)
+	{
+		$this->data["type"] = $type;
+	}
+	
+	public function setDynamicDescriptor($dynamic_descriptor)
+	{
+		$this->data["dynamic_descriptor"] = $dynamic_descriptor;
+	}
+	
+	public function setTokenOriginator($store_id, $api_token)
+	{		
+		$this->data["token_originator"] = array (
+			"store_id" => $store_id,
+			"api_token" => $api_token
+		);
+	}
+	
+	public function setFinalAuth($final_auth)
+	{
+		$this->data["final_auth"] = $final_auth;
+	}
+
+	public function setMCPVersion($mcp_version)
+	{
+		$this->data["mcp_version"] = $mcp_version;
+	}
+
+	public function setMCPRateToken($mcp_rate_token)
+	{
+		$this->data["mcp_rate_token"] = $mcp_rate_token;
+	}
+
+	public function setCardholderAmount($cardholder_amount)
+	{
+		$this->data["cardholder_amount"] = $cardholder_amount;
+	}
+
+	public function setCardholderCurrencyCode($cardholder_currency_code)
+	{
+		$this->data["cardholder_currency_code"] = $cardholder_currency_code;
+	}
+}
+
 class GooglePayPreauth extends Transaction
 {
 	
@@ -6073,6 +6612,90 @@ class GooglePayPreauth extends Transaction
 	}
 }
 
+class GooglePayMCPPreauth extends Transaction
+{
+	
+	private $template = array (
+		"order_id" => null,
+		"amount" => null,
+		"cust_id" => null,
+		"network" => null,
+		"payment_token" => null,
+		"dynamic_descriptor" => null,
+		"final_auth" => null,
+		"mcp_version" => null,
+		"mcp_rate_token" => null,
+		"cardholder_amount" => null,
+		"cardholder_currency_code" => null
+	);
+	
+	public function __construct()
+	{
+		$this->rootTag = "googlepay_mcp_preauth";
+		$this->data = $this->template;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setAmount($amount)
+	{
+		$this->data["amount"] = $amount;
+	}
+	
+	public function setCustId($cust_id)
+	{
+		$this->data["cust_id"] = $cust_id;
+	}
+	
+	public function setNetwork($network)
+	{
+		$this->data["network"] = $network;
+	}
+	
+	public function setDynamicDescriptor($dynamicDescriptor)
+	{
+		$this->data["dynamic_descriptor"] = $dynamicDescriptor;
+	}
+	
+	public function setPaymentToken($signature, $protocol_version, $signed_message)
+	{
+		
+		$this->data["payment_token"] = array (
+			"signature" => $signature,
+			"protocol_version" => $protocol_version,
+			"signed_message" => $signed_message
+		);
+	}
+	
+	public function setFinalAuth($final_auth)
+	{
+		$this->data["final_auth"] = $final_auth;
+	}
+
+	public function setMCPVersion($mcp_version)
+	{
+		$this->data["mcp_version"] = $mcp_version;
+	}
+
+	public function setMCPRateToken($mcp_rate_token)
+	{
+		$this->data["mcp_rate_token"] = $mcp_rate_token;
+	}
+
+	public function setCardholderAmount($cardholder_amount)
+	{
+		$this->data["cardholder_amount"] = $cardholder_amount;
+	}
+
+	public function setCardholderCurrencyCode($cardholder_currency_code)
+	{
+		$this->data["cardholder_currency_code"] = $cardholder_currency_code;
+	}
+}
+
 class GooglePayPurchase extends Transaction
 {
 	
@@ -6124,6 +6747,84 @@ class GooglePayPurchase extends Transaction
 			"protocol_version" => $protocol_version,
 			"signed_message" => $signed_message
 		);
+	}
+}
+
+class GooglePayMCPPurchase extends Transaction
+{
+	
+	private $template = array (
+		"order_id" => null,
+		"amount" => null,
+		"cust_id" => null,
+		"network" => null,
+		"payment_token" => null,
+		"dynamic_descriptor" => null,
+		"mcp_version" => null,
+		"mcp_rate_token" => null,
+		"cardholder_amount" => null,
+		"cardholder_currency_code" => null
+	);
+	
+	public function __construct()
+	{
+		$this->rootTag = "googlepay_mcp_purchase";
+		$this->data = $this->template;
+	}
+	
+	public function setOrderId($order_id)
+	{
+		$this->data["order_id"] = $order_id;
+	}
+	
+	public function setAmount($amount)
+	{
+		$this->data["amount"] = $amount;
+	}
+	
+	public function setCustId($cust_id)
+	{
+		$this->data["cust_id"] = $cust_id;
+	}
+	
+	public function setNetwork($network)
+	{
+		$this->data["network"] = $network;
+	}
+	
+	public function setDynamicDescriptor($dynamicDescriptor)
+	{
+		$this->data["dynamic_descriptor"] = $dynamicDescriptor;
+	}
+	
+	public function setPaymentToken($signature, $protocol_version, $signed_message)
+	{
+		
+		$this->data["payment_token"] = array (
+			"signature" => $signature,
+			"protocol_version" => $protocol_version,
+			"signed_message" => $signed_message
+		);
+	}
+
+	public function setMCPVersion($mcp_version)
+	{
+		$this->data["mcp_version"] = $mcp_version;
+	}
+
+	public function setMCPRateToken($mcp_rate_token)
+	{
+		$this->data["mcp_rate_token"] = $mcp_rate_token;
+	}
+
+	public function setCardholderAmount($cardholder_amount)
+	{
+		$this->data["cardholder_amount"] = $cardholder_amount;
+	}
+
+	public function setCardholderCurrencyCode($cardholder_currency_code)
+	{
+		$this->data["cardholder_currency_code"] = $cardholder_currency_code;
 	}
 }
 
@@ -6367,6 +7068,296 @@ class MpiCavvLookup extends Transaction {
 	public function setCRes($cres)
 	{
 		$this->data["cres"] = $cres;
+	}
+}
+
+class TACDetails {
+	// Properties
+	public $text, $url, $version, $languageCode;
+  
+	// Methods
+	function getText() {
+		return $this->text;
+	}
+
+	function setText($text) {
+		$this->text = $text;
+	}
+
+	function getUrl() {
+		return $this->url;
+	}
+
+	function setUrl($url) {
+		$this->url = $url;	}
+
+	function getVersion() {
+		return $this->version;
+	}
+
+	function setVersion($version) {
+		$this->version = $version;	}
+
+	function getLanguageCode() {
+		return $this->languageCode;
+	}
+
+	function setLanguageCode($languageCode) {
+		$this->languageCode = $languageCode;	
+	}
+}
+
+class TAC {
+	// Properties
+	public $tacDetailsList;
+  
+	// Methods
+	function getTacDetailsList() {
+		return $this->tacDetailsList;
+	}
+
+	function setTacs($tacs) {
+		$this->tacDetailsList = $tacs;
+	}
+
+	function getTacCount() {
+		return count($this->tacDetailsList);
+	}
+}
+
+class PromotionInfo {
+	// Properties
+	public $promotionCode, $promotionId;
+  
+	// Methods
+	function getPromotionCode() {
+		return  $this->promotionCode;
+	}
+
+	function setPromotionCode($promotionCode) {
+		$this->promotionCode = $promotionCode;
+	}
+
+	function getPromotionId() {
+		return  $this->promotionId;
+	}
+
+	function setPromotionId($promotionId) {
+		$this->promotionId = $promotionId;
+	}
+}
+
+class FirstInstallment {
+	// Properties
+	public $upfrontFee, $installmentFee, $amount;
+  
+	// Methods
+	function getUpfrontFee() {
+		return  $this->upfrontFee;
+	}
+
+	function setUpfrontFee($upfrontFee) {
+		$this->upfrontFee = $upfrontFee;
+	}
+
+	function getInstallmentFee() {
+		return  $this->installmentFee;
+	}
+
+	function setInstallmentFee($installmentFee) {
+		$this->installmentFee = $installmentFee;
+	}
+
+	function getAmount() {
+		return  $this->amount;
+	}
+
+	function setAmount($amount) {
+		$this->amount = $amount;
+	}
+}
+
+class LastInstallment {
+	// Properties
+	public $installmentFee, $amount;
+  
+	// Methods
+	function getInstallmentFee() {
+		return  $this->installmentFee;
+	}
+
+	function setInstallmentFee($installmentFee) {
+		$this->installmentFee = $installmentFee;
+	}
+
+	function getAmount() {
+		return  $this->amount;
+	}
+
+	function setAmount($amount) {
+		$this->amount = $amount;
+	}
+}
+
+class PlanDetails {
+	// Properties
+	private $planId, $planIdRef, $name, $type, $numInstallments, $installmentFrequency, $apr, $totalFees, $totalPlanCost;
+	private $tac, $promotionInfo, $firstInstallment, $lastInstallment;
+  
+	// Methods
+	function setPlanId($planId) {
+		$this->planId = $planId;
+	}
+	function getPlanId() {
+		return $this->planId;
+	}
+
+	function setPlanIdRef($planIdRef) {
+		$this->planIdRef = $planIdRef;
+	}
+	function getPlanIdRef() {
+		return $this->planIdRef;
+	}
+
+	function setName($name) {
+		$this->name = $name;
+	}
+	function getName() {
+		return $this->name;
+	}
+
+	function setType($type) {
+		$this->type = $type;
+	}
+	function getType() {
+		return $this->type;
+	}
+
+	function setNumInstallments($numInstallments) {
+		$this->numInstallments = $numInstallments;
+	}
+	function getNumInstallments() {
+		return $this->numInstallments;
+	}
+
+	function setInstallmentFrequency($installmentFrequency) {
+		$this->installmentFrequency = $installmentFrequency;
+	}
+	function getInstallmentFrequency() {
+		return $this->installmentFrequency;
+	}
+
+	function setAPR($apr) {
+		$this->apr = $apr;
+	}
+	function getAPR() {
+		return $this->apr;
+	}
+
+	function setTotalFees($totalFees) {
+		$this->totalFees = $totalFees;
+	}
+	function getTotalFees() {
+		return $this->totalFees;
+	}
+	
+	function setTotalPlanCost($totalPlanCost) {
+		$this->totalPlanCost = $totalPlanCost;
+	}
+	function getTotalPlanCost() {
+		return $this->totalPlanCost;
+	}
+
+	function setTac($tac) {
+		$this->tac = $tac;
+	}
+	function getTac() {
+		return $this->tac;
+	}
+
+	function setPromotionInfo($promotionInfo) {
+		$this->promotionInfo = $promotionInfo;
+	}
+	function getPromotionInfo() {
+		return $this->promotionInfo;
+	}
+
+	function setFirstInstallment($firstInstallment) {
+		$this->firstInstallment = $firstInstallment;
+	}
+	function getFirstInstallment() {
+		return $this->firstInstallment;
+	}
+
+	function setLastInstallment($lastInstallment) {
+		$this->lastInstallment = $lastInstallment;
+	}
+	function getLastInstallment() {
+		return $this->lastInstallment;
+	}
+}
+
+class EligibleInstallmentPlans {
+	// Properties
+	public $installmentPlans;
+  
+	// Methods
+	function setInstallmentPlans($installmentPlans) {
+		$this->installmentPlans = $installmentPlans;
+	}
+	function getInstallmentPlans() {
+		return $this->installmentPlans;
+	}
+	function getPlanCount() {
+		return count($this->installmentPlans);
+	}
+}
+
+class InstallmentResults {
+	// Properties
+	public $planId, $planIdRef, $tacVersion, $planAcceptanceId, $planStatus, $PlanResponse;
+  
+	// Methods
+	function setPlanId($planId) {
+		$this->planId = $planId;
+	}
+	function getPlanId() {
+		return $this->planId;
+	}
+
+	function setPlanIdRef($planIdRef) {
+		$this->planIdRef = $planIdRef;
+	}
+	function getPlanIDRef() {
+		return $this->planIdRef;
+	}
+
+	function setTacVersion($tacVersion) {
+		$this->tacVersion = $tacVersion;
+	}
+	function getTacVersion() {
+		return $this->tacVersion;
+	}
+
+	function setPlanAcceptanceId($planAcceptanceId) {
+		$this->planAcceptanceId = $planAcceptanceId;
+	}
+	function getPlanAcceptanceId() {
+		return $this->planAcceptanceId;
+	}
+
+	function setPlanStatus($planStatus) {
+		$this->planStatus = $planStatus;
+	}
+	function getPlanStatus() {
+		return $this->planStatus;
+	}
+
+	function setPlanResponse($PlanResponse) {
+		$this->PlanResponse = $PlanResponse;
+	}
+	function getPlanResponse() {
+		return $this->PlanResponse;
 	}
 }
 ?>

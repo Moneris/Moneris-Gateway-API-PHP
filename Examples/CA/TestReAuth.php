@@ -57,7 +57,7 @@ print("\nTransDate = " . $mpgResponse->getTransDate()."<br>");
 print("\nTransTime = " . $mpgResponse->getTransTime()."<br>");
 print("\nTicket = " . $mpgResponse->getTicket()."<br>");
 print("\nTimedOut = " . $mpgResponse->getTimedOut()."<br>");
-
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>
 

@@ -184,6 +184,7 @@ print("\nTransDate = " . $mpgResponse->getTransDate());
 print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>
 

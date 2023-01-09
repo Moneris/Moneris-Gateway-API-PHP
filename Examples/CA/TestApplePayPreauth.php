@@ -85,6 +85,7 @@ print("\nStatusCode = " . $mpgResponse->getStatusCode());
 print("\nStatusMessage = " . $mpgResponse->getStatusMessage());
 print("\nHostId = " . $mpgResponse->getHostId());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>
 

@@ -1,34 +1,31 @@
 <?php
-##
-## This program takes 3 arguments from the command line:
-## 1. Store id
-## 2. api token
-## 3. order id
-##
-## Example php -q TestResPurchaseCC.php store3 yesguy unique_order_id 1.00
-##
 
 require "../../mpgClasses.php";
 
 /************************ Request Variables **********************************/
 
-$store_id='store5';
-$api_token='yesguy';
+$store_id='monca00597';
+$api_token='O27AbCbxQorPggMQe6hU';
 
 /************************ Transaction Variables ******************************/
 
-$data_key='t8RCndWBNFNt4Dx32CCnl2tlz';
+$data_key='4HIme0ZGURXE3NRBXHUj6nSc4';
 $orderid='res-purch-'.date("dmy-G:i:s");
 $crypt_type='1';
 
-$expdate='1911'; //for temp token
+$expdate='2301'; //for temp token
+
+//NT Response Option
+$get_nt_response = 'false';//Optional - set it true only if you want to get network tokenization response.
+
 /************************ Transaction Array **********************************/
 
 $txnArray=array('type'=>'res_card_verification_cc',
 				'data_key'=>$data_key,
 		        'order_id'=>$orderid,
 				'crypt_type'=>$crypt_type,
-		        'expdate'=>$expdate
+		        'expdate'=>$expdate,
+				'get_nt_response'=>$get_nt_response
 		        );
 
 /************************** CVD Variables *****************************/
@@ -114,6 +111,16 @@ print("\nAVSResponse = " . $mpgResponse->getAvsResultCode());
 print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
+
+
+if($get_nt_response == 'true') 
+{
+	print("\n\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+	print("\nNTResponseCode = " . $mpgResponse->getNTResponseCode());
+	print("\nNTMessage = " . $mpgResponse->getNTMessage());
+	print("\nNTUsed = " . $mpgResponse->getNTUsed());
+	print("\nNTMaskedToken = " . $mpgResponse->getNTMaskedToken());
+}
 
 //----------------- ResolveData ------------------------------
 

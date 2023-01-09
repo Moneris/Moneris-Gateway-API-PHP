@@ -101,4 +101,6 @@ print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nRecurSuccess = " . $mpgResponse->getRecurSuccess());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+
 ?>

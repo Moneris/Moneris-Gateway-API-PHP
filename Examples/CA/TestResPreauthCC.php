@@ -1,30 +1,24 @@
 <?php
 
-##
-## This program takes 3 arguments from the command line:
-## 1. Store id
-## 2. api token
-## 3. order id
-##
-## Example php -q TestResPreauthCC.php store3 yesguy unique_order_id cust_id 15.00 1
-##
-
 require "../../mpgClasses.php";
 
 /************************ Request Variables **********************************/
 
-$store_id='store5';
-$api_token='yesguy';
+$store_id='monca00597';
+$api_token='O27AbCbxQorPggMQe6hU';
 
 /************************ Transaction Variables ******************************/
 
-$data_key='ot-H0q8anK6eeHm0NDe9cwXkDvUw';
+$data_key='4HIme0ZGURXE3NRBXHUj6nSc4';
 $orderid='res-preauth-'.date("dmy-G:i:s");
 $amount='1.00';
-$custid='cust';	//if sent will be submitted, otherwise cust_id from profile will be used
+$custid='customer1';	//if sent will be submitted, otherwise cust_id from profile will be used
 $crypt_type='1';
 
-//$expdate='1512';
+$expdate='2301';
+
+//NT Response Option
+$get_nt_response = 'false';//Optional - set it true only if you want to get network tokenization response.
 
 /************************ Transaction Array **********************************/
 
@@ -34,8 +28,9 @@ $txnArray =array('type'=>'res_preauth_cc',
 				 'cust_id'=>$custid,
 				 'amount'=>$amount,
 				 'crypt_type'=>$crypt_type,
-				 //'expdate=>$expdate,
-				 'dynamic_descriptor'=>'12424'
+				 'expdate'=>$expdate,
+				 'dynamic_descriptor'=>'12424',
+				 'get_nt_response'=>$get_nt_response
 				 );
 
 /************************ Transaction Object *******************************/
@@ -47,9 +42,18 @@ $mpgTxn = new mpgTransaction($txnArray);
 $cof = new CofInfo();
 $cof->setPaymentIndicator("U");
 $cof->setPaymentInformation("2");
-$cof->setIssuerId("168451306048014");
+$cof->setIssuerId("139X3130ASCXAS9");
 
 $mpgTxn->setCofInfo($cof);
+
+/******************* Installment Info *OPTIONAL* **********************************/
+
+$installmentInfo = new InstallmentInfo();
+$installmentInfo->setPlanId("ae859ef1-eb91-b708-8b80-1dd481746401");
+$installmentInfo->setPlanIdRef("0000000065");
+$installmentInfo->setTacVersion("2");
+
+//$mpgTxn->setInstallmentInfo($installmentInfo);
 
 /************************ Request Object **********************************/
 
@@ -84,6 +88,24 @@ print("\nAVSResponse = " . $mpgResponse->getAvsResultCode());
 print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
+print("\n\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+
+// $installmentResults = $mpgResponse->getInstallmentResults();
+
+// print("\nPlanId = " . $installmentResults->getPlanId());
+// print("\nPlanIDRef = " . $installmentResults->getPlanIDRef());
+// print("\nTacVersion = " . $installmentResults->getTacVersion());
+// print("\nPlanAcceptanceId = " . $installmentResults->getPlanAcceptanceId());
+// print("\nPlanStatus = " . $installmentResults->getPlanStatus()); 
+// print("\nPlanResponse = " . $installmentResults->getPlanResponse());
+
+if($get_nt_response == 'true') 
+{
+	print("\nNTResponseCode = " . $mpgResponse->getNTResponseCode());
+	print("\nNTMessage = " . $mpgResponse->getNTMessage());
+	print("\nNTUsed = " . $mpgResponse->getNTUsed());
+	print("\nNTMaskedToken = " . $mpgResponse->getNTMaskedToken());
+}
 
 //----------------- ResolveData ------------------------------
 

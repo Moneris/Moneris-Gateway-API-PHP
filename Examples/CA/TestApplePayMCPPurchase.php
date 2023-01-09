@@ -26,25 +26,34 @@ $ephemeral_public_key = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvRQ5j9LKXIOw+XRZ5ic
 $transaction_id = "2324d83eee057e3a2a4176b7529fc939b59d58f6b3dedeaa62a388c0ac01c5a1";
 $dynamic_descriptor = "nqa-dd";
 
+$mcp_version = '1.0';
+$cardholder_amount = '500';
+$cardholder_currency_code = '840';
+$mcp_rate_token = 'P1623437375175657';
 
 /*********************** Transactional Associative Array **********************/
 
-$applePayTokenPurchase = new ApplePayTokenPurchase();
-$applePayTokenPurchase->setOrderId($order_id);
-$applePayTokenPurchase->setCustId($cust_id);
-$applePayTokenPurchase->setAmount($amount);
-$applePayTokenPurchase->setDisplayName($display_name);
-$applePayTokenPurchase->setNetwork($network);
-$applePayTokenPurchase->setVersion($version);
-$applePayTokenPurchase->setData($data);
-$applePayTokenPurchase->setSignature($signature);
-$applePayTokenPurchase->setHeader($public_key_hash, $ephemeral_public_key, $transaction_id);
-$applePayTokenPurchase->setDynamicDescriptor($dynamic_descriptor);
+$applePayMCPPurchase = new ApplePayMCPPurchase();
+$applePayMCPPurchase->setOrderId($order_id);
+$applePayMCPPurchase->setCustId($cust_id);
+$applePayMCPPurchase->setAmount($amount);
+$applePayMCPPurchase->setDisplayName($display_name);
+$applePayMCPPurchase->setNetwork($network);
+$applePayMCPPurchase->setVersion($version);
+$applePayMCPPurchase->setData($data);
+$applePayMCPPurchase->setSignature($signature);
+$applePayMCPPurchase->setHeader($public_key_hash, $ephemeral_public_key, $transaction_id);
+$applePayMCPPurchase->setDynamicDescriptor($dynamic_descriptor);
 //$applePayPreauth->setTokenOriginator($store_id, $api_token);
+
+$applePayMCPPurchase->setMCPVersion($mcp_version);
+$applePayMCPPurchase->setCardholderAmount($cardholder_amount);
+$applePayMCPPurchase->setCardholderCurrencyCode($cardholder_currency_code);
+$applePayMCPPurchase->setRateToken($mcp_rate_token);
 
 /**************************** Transaction Object *****************************/
 
-$mpgTxn = new mpgTransaction($applePayTokenPurchase);
+$mpgTxn = new mpgTransaction($applePayMCPPurchase);
 
 
 /****************************** Request Object *******************************/
@@ -86,6 +95,14 @@ print("\nStatusMessage = " . $mpgResponse->getStatusMessage());
 print("\nHostId = " . $mpgResponse->getHostId());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
 print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+
+print("\nMerchantSettlementAmount = " . $mpgResponse->getMerchantSettlementAmount());
+print("\nCardholderAmount = " . $mpgResponse->getCardholderAmount());
+print("\nCardholderCurrencyCode = " . $mpgResponse->getCardholderCurrencyCode());
+print("\nMCPRate = " . $mpgResponse->getMCPRate());
+print("\nMCPErrorStatusCode = " . $mpgResponse->getMCPErrorStatusCode());
+print("\nMCPErrorMessage = " . $mpgResponse->getMCPErrorMessage());
+print("\nHostId = " . $mpgResponse->getHostId());
 
 ?>
 

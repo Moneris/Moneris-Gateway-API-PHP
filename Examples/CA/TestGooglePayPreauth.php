@@ -1,9 +1,5 @@
 <?php
 
-##
-## Example php -q TestPurchase.php store1
-##
-
 require "../../mpgClasses.php";
 
 /**************************** Request Variables *******************************/
@@ -36,7 +32,6 @@ $googlePayPreauth->setDynamicDescriptor($dynamic_descriptor);
 /**************************** Transaction Object *****************************/
 
 $mpgTxn = new mpgTransaction($googlePayPreauth);
-
 
 /****************************** Request Object *******************************/
 
@@ -76,6 +71,7 @@ print("\nStatusCode = " . $mpgResponse->getStatusCode());
 print("\nStatusMessage = " . $mpgResponse->getStatusMessage());
 print("\nHostId = " . $mpgResponse->getHostId());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>
 

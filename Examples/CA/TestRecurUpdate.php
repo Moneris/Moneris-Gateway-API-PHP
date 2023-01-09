@@ -72,6 +72,7 @@ print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nRecurUpdateSuccess = " . $mpgResponse->getRecurUpdateSuccess());
 print("\nNextRecurDate = " . $mpgResponse->getNextRecurDate());
 print("\nRecurEndDate = " . $mpgResponse->getRecurEndDate());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>
 

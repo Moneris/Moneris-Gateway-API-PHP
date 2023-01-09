@@ -140,5 +140,6 @@ print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nCardLevelResult = " . $mpgResponse->getCardLevelResult());
 print("\nMaskedPan = " . $mpgResponse->getMaskedPan());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>

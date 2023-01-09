@@ -82,6 +82,7 @@ print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 print("\nMerchantSettlementAmount = " . $mpgResponse->getMerchantSettlementAmount());
 print("\nCardholderAmount = " . $mpgResponse->getCardholderAmount());

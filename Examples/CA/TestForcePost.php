@@ -72,6 +72,7 @@ print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
 //print("\nStatusCode = " . $mpgResponse->getStatusCode());
 //print("\nStatusMessage = " . $mpgResponse->getStatusMessage());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>
 

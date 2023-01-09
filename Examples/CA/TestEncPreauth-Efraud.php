@@ -105,5 +105,6 @@ print("\nCardLevelResult = " . $mpgResponse->getCardLevelResult());
 print("\nMaskedPan = " . $mpgResponse->getMaskedPan());
 print("\nCvdResultCode = " . $mpgResponse->getCvdResultCode());
 print("\nAvsResultCode = " . $mpgResponse->getAvsResultCode());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>

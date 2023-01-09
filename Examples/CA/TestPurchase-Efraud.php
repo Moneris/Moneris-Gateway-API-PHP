@@ -127,6 +127,7 @@ print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nAVSResponse = " . $mpgResponse->getAvsResultCode());
 print("\nCVDResponse = " . $mpgResponse->getCvdResultCode());
 print("\nITDResponse = " . $mpgResponse->getITDResponse());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>
 

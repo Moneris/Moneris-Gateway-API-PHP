@@ -5,13 +5,19 @@ require "../../mpgClasses.php";
 $store_id='store5';
 $api_token="yesguy";
 
+// TrId and TokenCryptogram are optional, refer documentation for more details.
+$tr_id = '50189815682';
+$token_cryptogram = 'APmbM/411e0uAAH+s6xMAAADFA==';
+
 $txnArray=array('type'=>'card_verification',
          'order_id'=>'ord-'.date("dmy-G:i:s"),
          'cust_id'=>'my cust id',
          'pan'=>'4242424242424242',
          'expdate'=>'1512',
          'crypt_type'=>'7'
-           );
+        //,'tr_id' => $tr_id
+		//,'token_cryptogram' => $token_cryptogram   
+        );
 
 $mpgTxn = new mpgTransaction($txnArray);
 
@@ -84,6 +90,7 @@ print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
+print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 ?>
 

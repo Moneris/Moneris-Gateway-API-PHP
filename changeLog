@@ -1,5 +1,29 @@
+Version 1.0.27:
+	- Added TotalPlanCost field to PlanDetails.
+
+Version 1.0.26:
+	- Fixed XML special characters parsing bug for response.
+	- Completed testing examples of Installment Plans.
+
+Version 1.0.25:
+    - Added InstallmentLookup transaction.
+    - Added ResInstallmentLookup transaction.
+    - Added Installment info object to the following transactions:
+        purchase, preauth, purchase_correction, completion,
+        refund, cavv_purchase, cavv_preauth, res_purchase_cc,
+        res_preauth_cc, res_cavv_purchase, res_cavv_preauth,
+        googlepay_purchase, googlepay_preauth
+    - Added setGetNtResponse method to the following transactions:
+        (res_purchase, res_preauth, res_cavv_purchase, res_cavv_preauth, res_card_verification)
+    - Added getSourcePanLast4, getNTResponseCode, getNTMessage, getNTUsed, and getNTMaskedToken methods.
+    - Added tr_id and token_cryptogram attributes to (purchase, preauth, cavv_purchase, cavv_preauth, and card_varification)
+
+Version 1.0.24:
+	- Added ApplePay MCP Purchase and Preauth transactions.
+	- Added GooglePay MCP Purchase and Preauth transactions.
+	
 Version 1.0.23:
-	- Added “ds_trans_id” variable for CavvPreauth, CavvPurchase, ResCavvPurchase, and ResCavvPreauth. 
+	- Added ds_trans_id variable for CavvPreauth, CavvPurchase, ResCavvPurchase, and ResCavvPreauth. 
 	- Added 3DS 2.0 within the TestCanadaCavvPurchaseRecur transaction type 
 	- Created additional MCP transaction types to support 3DS 2.0  (MCPCavvPreauth and MCPCavvPurchase)
 	- Created additional MCP vault transaction types to support 3DS 2.0  (MCPResCavvPreauth and MCPResCavvPurchase)
