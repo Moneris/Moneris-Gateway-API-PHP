@@ -55,15 +55,5 @@ print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
-
-// $installmentResults = $mpgResponse->getInstallmentResults();
-
-// print("\nPlanId = " . $installmentResults->getPlanId());
-// print("\nPlanIDRef = " . $installmentResults->getPlanIDRef());
-// print("\nTacVersion = " . $installmentResults->getTacVersion());
-// print("\nPlanAcceptanceId = " . $installmentResults->getPlanAcceptanceId());
-// print("\nPlanStatus = " . $installmentResults->getPlanStatus()); 
-// print("\nPlanResponse = " . $installmentResults->getPlanResponse());
-
 ?>
 

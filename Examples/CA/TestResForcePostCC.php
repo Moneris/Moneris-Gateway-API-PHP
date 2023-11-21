@@ -17,6 +17,9 @@ $crypt_type='7';
 $auth_code='256452';
 $dynamic_descriptor='my descriptor';
 
+//NT Response Option
+$get_nt_response = 'true';//Optional - set it true only if you want to get network tokenization response.
+
 /************************ Transaction Array **********************************/
 
 $txnArray=array('type'=>'res_forcepost_cc',
@@ -26,7 +29,8 @@ $txnArray=array('type'=>'res_forcepost_cc',
 				'data_key'=>$data_key,
 		        'crypt_type'=>$crypt_type,
 				'auth_code'=>$auth_code,
-				'dynamic_descriptor'=>$dynamic_descriptor
+				'dynamic_descriptor'=>$dynamic_descriptor,
+				'get_nt_response'=>$get_nt_response
 		        );
 
 
@@ -68,6 +72,17 @@ print("\nAVSResponse = " . $mpgResponse->getAvsResultCode());
 print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
+print("\n\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+
+if($get_nt_response == 'true') 
+{
+	print("\n\nNTResponseCode = " . $mpgResponse->getNTResponseCode());
+	print("\nNTMessage = " . $mpgResponse->getNTMessage());
+	print("\nNTUsed = " . $mpgResponse->getNTUsed());
+	print("\nNTTokenBin = " . $mpgResponse->getNTTokenBin());
+	print("\nNTTokenLast4 = " . $mpgResponse->getNTTokenLast4());
+	print("\nNTTokenExpDate = " . $mpgResponse->getNTTokenExpDate());
+}
 
 //----------------- ResolveData ------------------------------
 

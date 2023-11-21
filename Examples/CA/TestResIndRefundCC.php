@@ -24,6 +24,9 @@ $amount='1.00';
 $custid='';
 $crypt_type='1';
 
+//NT Response Option
+$get_nt_response = 'true';//Optional - set it true only if you want to get network tokenization response.
+
 /************************ Transaction Array **********************************/
 
 $txnArray =array('type'=>'res_ind_refund_cc',
@@ -32,7 +35,8 @@ $txnArray =array('type'=>'res_ind_refund_cc',
 				 'cust_id'=>$custid,
 				 'amount'=>$amount,
 				 'crypt_type'=>$crypt_type,
-				 'dynamic_descriptor'=>'12346'
+				 'dynamic_descriptor'=>'12346',
+				 'get_nt_response'=>$get_nt_response
 				 );
 
 /************************ Transaction Object *******************************/
@@ -70,6 +74,17 @@ print("\nTxnNumber = " . $mpgResponse->getTxnNumber());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
+print("\n\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+
+if($get_nt_response == 'true') 
+{
+	print("\n\nNTResponseCode = " . $mpgResponse->getNTResponseCode());
+	print("\nNTMessage = " . $mpgResponse->getNTMessage());
+	print("\nNTUsed = " . $mpgResponse->getNTUsed());
+	print("\nNTTokenBin = " . $mpgResponse->getNTTokenBin());
+	print("\nNTTokenLast4 = " . $mpgResponse->getNTTokenLast4());
+	print("\nNTTokenExpDate = " . $mpgResponse->getNTTokenExpDate());
+}
 
 //----------------- ResolveData ------------------------------
 

@@ -17,7 +17,7 @@ class mpgGlobals
 					'MONERIS_MPI_FILE' => '/mpi/servlet/MpiServlet',
 					'MONERIS_MPI_2_FILE' => '/mpi2/servlet/MpiServlet',
 					'MONERIS_US_MPI_FILE' => '/mpi/servlet/MpiServlet',
-                  	'API_VERSION'  => 'PHP NA - 1.0.22',
+                  	'API_VERSION'  => 'PHP NA - 1.0.30',
 					'CONNECT_TIMEOUT' => '20',
                   	'CLIENT_TIMEOUT' => '35'
                  	);
@@ -42,7 +42,7 @@ class httpsPost
 	var $clientTimeOut;
 	var $apiVersion;
 	var $response;
-	var $debug = false; //default is false for production release
+	var $debug = true; //default is false for production release
 
 	public function __construct($url, $dataToSend)
 	{
@@ -674,6 +674,19 @@ class mpgResponse
 	{
 		return $this->getMpgResponseValue($this->responseData,'NTUsed');
 	}
+	public function getNTTokenBin()
+	{
+		return $this->getMpgResponseValue($this->responseData,'NTTokenBin');
+	}
+	public function getNTTokenLast4()
+	{
+		return $this->getMpgResponseValue($this->responseData,'NTTokenLast4');
+	}
+	public function getNTTokenExpDate()
+	{
+		return $this->getMpgResponseValue($this->responseData,'NTTokenExpDate');
+	}
+
 	public function getNTMaskedToken()
 	{
 		return $this->getMpgResponseValue($this->responseData,'NTMaskedToken');
@@ -1673,6 +1686,31 @@ class mpgResponse
 	{
 		return $this->getMpgResponseValue($this->responseData,"ThreeDSVersion");
 	}
+
+	public function getMpiThreeDSAcsTransID()
+	{
+		return $this->getMpgResponseValue($this->responseData,"ThreeDSAcsTransID");
+	}
+
+	public function getMpiThreeDSAuthTimeStamp()
+	{
+		return $this->getMpgResponseValue($this->responseData,"ThreeDSAuthTimeStamp");
+	}
+
+	public function getMpiAuthenticationType()
+	{
+		return $this->getMpgResponseValue($this->responseData,"AuthenticationType");
+	}
+
+	public function getMpiCardholderInfo()
+	{
+		return $this->getMpgResponseValue($this->responseData,"CardholderInfo");
+	}
+
+	public function getMpiTransStatusReason()
+	{
+		return $this->getMpgResponseValue($this->responseData,"TransStatusReason");
+	}
 	
 	public function getMpiInLineForm()
 	{
@@ -2301,7 +2339,7 @@ class mpgRequest
  				'res_cavv_purchase_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'get_nt_response'),
  				'res_delete' => array('data_key'),
  				'res_get_expiring' => array(),
- 				'res_ind_refund_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor'),
+ 				'res_ind_refund_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor', 'get_nt_response'),
 				'res_iscorporatecard' => array('data_key'),
  				'res_lookup_full' => array('data_key'),
 				'res_lookup_masked' => array('data_key'),
@@ -2312,7 +2350,7 @@ class mpgRequest
  				'res_temp_tokenize' => array('order_id', 'txn_number', 'duration', 'crypt_type'),
 				'res_tokenize_cc' => array('order_id','txn_number','cust_id','phone','email','note', 'data_key_format'),
 				'res_update_cc' => array('data_key','cust_id','phone','email','note','pan','expdate','crypt_type'),
- 				'res_forcepost_cc' => array('order_id','cust_id','amount','data_key','auth_code', 'crypt_type','dynamic_descriptor'),
+ 				'res_forcepost_cc' => array('order_id','cust_id','amount','data_key','auth_code', 'crypt_type','dynamic_descriptor', 'get_nt_response'),
  				
  				//Track2
  				'track2_completion' => array('order_id', 'comp_amount','txn_number','pos_code','dynamic_descriptor'),
@@ -2611,12 +2649,10 @@ class mpgRequest
   		
   		$hostId = "MONERIS".$this->procCountryCode.$this->testMode."_HOST";
   		$pathId = "MONERIS".$this->procCountryCode.$this->isMPI."_FILE";
-  		
   		$url =  $gArray['MONERIS_PROTOCOL']."://".
   				$gArray[$hostId].":".
   				$gArray['MONERIS_PORT'].
   				$gArray[$pathId];
-  		
   		return $url;
 	}
 
@@ -3591,7 +3627,7 @@ class MpiRequest
 				$gArray['MONERIS_PORT'].
 				$gArray[$pathId];
 	
-		//echo "PostURL: " . $url;
+// 		echo "PostURL: " . $url;
 	
 		return $url;
 	}
@@ -6896,7 +6932,17 @@ class MpiThreeDSAuthentication extends Transaction {
 		"browser_screen_width" => null,
 		"browser_language" => null,
 		"email" => null,
-		"request_challenge" => null
+		"request_challenge" => null,
+		"message_category" => null,
+		"device_channel" => null,
+		"decoupled_request_indicator" => null,
+		"decoupled_request_max_time" => null,
+		"decoupled_request_async_url" => null,
+		"ri_indicator" => null,
+		"prior_authentication_info" => null,
+		"recurring_expiry" => null,
+        "recurring_frequency" => null
+
 	);
 	
 	public function __construct()
@@ -7049,6 +7095,50 @@ class MpiThreeDSAuthentication extends Transaction {
 	public function setRequestChallenge($request_challenge)
 	{
 		$this->data["request_challenge"] = $request_challenge;
+	}
+
+	public function setMessageCategory($message_category)
+	{
+		$this->data["message_category"] = $message_category;
+	}
+
+	public function setDeviceChannel($device_channel)
+	{
+		$this->data["device_channel"] = $device_channel;
+	}
+
+	public function setDecoupledRequestIndicator($decoupled_request_indicator)
+	{
+		$this->data["decoupled_request_indicator"] = $decoupled_request_indicator;
+	}
+
+	public function setDecoupledRequestMaxTime($decoupled_request_max_time)
+	{
+		$this->data["decoupled_request_max_time"] = $decoupled_request_max_time;
+	}
+
+	public function setDecoupledRequestAsyncUrl($decoupled_request_async_url)
+	{
+		$this->data["decoupled_request_async_url"] = $decoupled_request_async_url;
+	}
+
+	public function setRiIndicator($ri_indicator)
+	{
+		$this->data["ri_indicator"] = $ri_indicator;
+	}
+
+	public function setPriorAuthenticationInfo($priorAuthenticationInfo)
+	{
+		$this->data["prior_authentication_info"] = $priorAuthenticationInfo;
+	}
+	public function setRecurringExpiry($recurringExpiry)
+	{
+		$this->data["recurring_expiry"] = $recurringExpiry;
+	}
+
+	public function setRecurringFrequency($recurringFrequency)
+	{
+		$this->data["recurring_frequency"] = $recurringFrequency;
 	}
 }
 
@@ -7360,4 +7450,5 @@ class InstallmentResults {
 		return $this->PlanResponse;
 	}
 }
+
 ?>

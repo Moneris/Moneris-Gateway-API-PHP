@@ -111,15 +111,16 @@ print("\nAVSResponse = " . $mpgResponse->getAvsResultCode());
 print("\nResSuccess = " . $mpgResponse->getResSuccess());
 print("\nPaymentType = " . $mpgResponse->getPaymentType());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
-
+print("\n\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
 
 if($get_nt_response == 'true') 
 {
-	print("\n\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
-	print("\nNTResponseCode = " . $mpgResponse->getNTResponseCode());
+	print("\n\nNTResponseCode = " . $mpgResponse->getNTResponseCode());
 	print("\nNTMessage = " . $mpgResponse->getNTMessage());
 	print("\nNTUsed = " . $mpgResponse->getNTUsed());
-	print("\nNTMaskedToken = " . $mpgResponse->getNTMaskedToken());
+	print("\nNTTokenBin = " . $mpgResponse->getNTTokenBin());
+	print("\nNTTokenLast4 = " . $mpgResponse->getNTTokenLast4());
+	print("\nNTTokenExpDate = " . $mpgResponse->getNTTokenExpDate());
 }
 
 //----------------- ResolveData ------------------------------

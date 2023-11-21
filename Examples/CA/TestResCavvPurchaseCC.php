@@ -107,10 +107,12 @@ print("\nPlanResponse = " . $installmentResults->getPlanResponse());
 
 if($get_nt_response == 'true') 
 {
-	print("\nNTResponseCode = " . $mpgResponse->getNTResponseCode());
+	print("\n\nNTResponseCode = " . $mpgResponse->getNTResponseCode());
 	print("\nNTMessage = " . $mpgResponse->getNTMessage());
 	print("\nNTUsed = " . $mpgResponse->getNTUsed());
-	print("\nNTMaskedToken = " . $mpgResponse->getNTMaskedToken());
+	print("\nNTTokenBin = " . $mpgResponse->getNTTokenBin());
+	print("\nNTTokenLast4 = " . $mpgResponse->getNTTokenLast4());
+	print("\nNTTokenExpDate = " . $mpgResponse->getNTTokenExpDate());
 }
 
 //----------------- ResolveData ------------------------------

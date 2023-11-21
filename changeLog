@@ -1,3 +1,12 @@
+Version 1.0.30:
+    -Added 3DS2.2 functionality
+
+Version 1.0.29:
+	-Added NT to the ResIndependentRefund and ResForcePost transactions.
+
+Version 1.0.28:
+	-Added getNTTokenBin, getNTTokenLast4, and getNTTokenExpDate to the Receipt.
+
 Version 1.0.27:
 	- Added TotalPlanCost field to PlanDetails.
 
