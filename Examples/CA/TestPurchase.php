@@ -11,8 +11,8 @@ $api_token='7Yw0MPTlhjBRcZiE6837';
 
 $type='purchase';
 $order_id='Test'.date("dmy-G:i:s");
-$amount='6000.00';
-$pan='4622943127023886';
+$amount='4840.00';
+$pan='5454545454545454';
 $expdate='2212';
 $crypt='7';
 $dynamic_descriptor='123';
@@ -98,6 +98,8 @@ print("\nStatusMessage = " . $mpgResponse->getStatusMessage());
 print("\nHostId = " . $mpgResponse->getHostId());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
 print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+print("\nAdviceCode = " . $mpgResponse->getAdviceCode());
+
 
 // $installmentResults = $mpgResponse->getInstallmentResults();
 

@@ -10,8 +10,8 @@ $api_token='7Yw0MPTlhjBRcZiE6837';
 $type='preauth';
 $cust_id='cust id';
 $order_id='ord-'.date("dmy-G:i:s");
-$amount='6000.00';
-$pan='4622943127023886';
+$amount='4840.00';
+$pan='5454545454545454';
 $expdate='2212';
 $crypt='7';
 $dynamic_descriptor='123';
@@ -82,6 +82,7 @@ print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
 print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+print("\nAdviceCode = " . $mpgResponse->getAdviceCode());
 
 // $installmentResults = $mpgResponse->getInstallmentResults();
 

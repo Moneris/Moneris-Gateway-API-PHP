@@ -91,6 +91,7 @@ print("\nCavvResultCode = " . $mpgResponse->getCavvResultCode());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
 print("\nThreeDSVersion = " . $mpgResponse->getThreeDSVersion());
 print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+print("\nAdviceCode = " . $mpgResponse->getAdviceCode());
 
 ?>
 
