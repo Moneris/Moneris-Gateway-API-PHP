@@ -1,5 +1,11 @@
+Version 1.0.32:
+	-Added Googlepay financial transactions with 3DS
+
+Version 1.0.31:
+    - Added phone and browser ip fields to MpiThreeDSAuthentication Request
+
 Version 1.0.30:
-    -Added 3DS2.2 functionality
+    - Added 3DS2.2 functionality
 
 Version 1.0.29:
 	-Added NT to the ResIndependentRefund and ResForcePost transactions.
