@@ -24,6 +24,7 @@ $mpiThreeDSAuthentication->setBrowserJavaEnabled("true"); //(true|false)
 $mpiThreeDSAuthentication->setBrowserScreenHeight("1000"); //(pixel height of cardholder screen)
 $mpiThreeDSAuthentication->setBrowserScreenWidth("1920"); //(pixel width of cardholder screen)
 $mpiThreeDSAuthentication->setBrowserLanguage("en-GB"); //(defined by IETF BCP47)
+$mpiThreeDSAuthentication->setBrowserIP("127.0.0.1"); //(defined by IETF BCP47)
 
 //Optional Methods
 $mpiThreeDSAuthentication->setBillAddress1("3300 Bloor St W");
@@ -50,13 +51,31 @@ $mpiThreeDSAuthentication->setRiIndicator("03");
 // $mpiThreeDSAuthentication->setRecurringFrequency("031");
 // $mpiThreeDSAuthentication->setRecurringExpiry("20251230");
 
-$paiTemplate = array(
-    'prior_request_auth_data'=>"d7c1ee99-9478-44a6-b1f2-391e29c6b340",
-    'prior_request_ref'=>"d7c1ee99-9478-44a6-b1f2-391e29c6b340",
-    'prior_request_auth_method'=>"01",
-    'prior_request_auth_timestamp'=>"201710282113"
-);
+// $paiTemplate = array(
+//     'prior_request_auth_data'=>"d7c1ee99-9478-44a6-b1f2-391e29c6b340",
+//     'prior_request_ref'=>"d7c1ee99-9478-44a6-b1f2-391e29c6b340",
+//     'prior_request_auth_method'=>"01",
+//     'prior_request_auth_timestamp'=>"201710282113"
+// );
 // $mpiThreeDSAuthentication->setPriorAuthenticationInfo( $paiTemplate );
+//
+// $workPhoneTemplate = array(
+//     'cc'=>'1',
+//     'subscriber'=>'1111111111'
+// );
+// $mpiThreeDSAuthentication->setWorkPhone( $workPhoneTemplate );
+//
+// $mobilePhoneTemplate = array(
+//     'cc'=>'2',
+//     'subscriber'=>'2222222222'
+// );
+// $mpiThreeDSAuthentication->setMobilePhone( $mobilePhoneTemplate );
+//
+// $homePhoneTemplate = array(
+//     'cc'=>'3',
+//     'subscriber'=>'3333333333'
+// );
+// $mpiThreeDSAuthentication->setHomePhone( $homePhoneTemplate );
 
 
 /****************************** Transaction Object *******************************/
@@ -68,7 +87,7 @@ $mpgRequest = new mpgRequest($mpgTxn);
 $mpgRequest->setProcCountryCode("CA"); //"US" for sending transaction to US environment
 $mpgRequest->setTestMode(true); //false or comment out this line for production transactions
 
-//print_r($mpgRequest);
+print_r($mpgRequest);
 /****************************** HTTPS Post Object *******************************/
 $mpgHttpPost  =new mpgHttpsPost($store_id,$api_token,$mpgRequest);
 

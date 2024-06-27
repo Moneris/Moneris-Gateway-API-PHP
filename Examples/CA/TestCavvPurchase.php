@@ -12,8 +12,8 @@ $api_token='7Yw0MPTlhjBRcZiE6837';
 $type='cavv_purchase';
 $order_id='ord-'.date("dmy-G:i:s");
 $cust_id='CUST887763';
-$amount='6000.00';
-$pan='4622943127023886';
+$amount='4840.00';
+$pan='5454545454545454';
 $expiry_date='2212';
 $cavv='AAABBJg0VhI0VniQEjRWAAAAAAA=';
 $crypt_type = '7';
@@ -93,6 +93,7 @@ print("\nCavvResultCode = " . $mpgResponse->getCavvResultCode());
 print("\nIssuerId = " . $mpgResponse->getIssuerId());
 print("\nThreeDSVersion = " . $mpgResponse->getThreeDSVersion());
 print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+print("\nAdviceCode = " . $mpgResponse->getAdviceCode());
 
 ?>
 

@@ -42,7 +42,7 @@ class httpsPost
 	var $clientTimeOut;
 	var $apiVersion;
 	var $response;
-	var $debug = true; //default is false for production release
+	var $debug = false; //default is false for production release
 
 	public function __construct($url, $dataToSend)
 	{
@@ -882,6 +882,12 @@ class mpgResponse
 	public function getPaymentType()
 	{
 		return $this->getMpgResponseValue($this->responseData,'PaymentType');
+	}
+
+	//MAC CODE
+	public function getAdviceCode()
+	{
+		return $this->getMpgResponseValue($this->responseData,'AdviceCode');
 	}
 
 	//------------------------------------------------------------------------------------//
@@ -2532,8 +2538,8 @@ class mpgRequest
 				'googlepay_mcp_purchase' => array('order_id', 'amount', 'cust_id', 'network', 'payment_token', 'dynamic_descriptor', 'mcp_version', 'mcp_rate_token', 'cardholder_amount', 'cardholder_currency_code'),
 				'googlepay_mcp_preauth' => array('order_id', 'amount', 'cust_id', 'network', 'payment_token', 'dynamic_descriptor', 'final_auth', 'mcp_version', 'mcp_rate_token', 'cardholder_amount', 'cardholder_currency_code'),
 
-                'googlepay_token_purchase' => array('order_id', 'amount', 'cust_id', 'network', 'data_key', 'threeds_server_trans_id', 'ds_trans_id', 'threeds_version', 'cavv', 'dynamic_descriptor'),
-				'googlepay_token_preauth' => array('order_id', 'amount', 'cust_id', 'network', 'data_key', 'threeds_server_trans_id', 'ds_trans_id', 'threeds_version', 'cavv', 'dynamic_descriptor', 'final_auth'),
+                'googlepay_token_purchase' => array('order_id', 'amount', 'cust_id', 'network', 'crypt_type', 'data_key', 'threeds_server_trans_id', 'ds_trans_id', 'threeds_version', 'cavv', 'dynamic_descriptor'),
+				'googlepay_token_preauth' => array('order_id', 'amount', 'cust_id', 'network', 'crypt_type', 'data_key', 'threeds_server_trans_id', 'ds_trans_id', 'threeds_version', 'cavv', 'dynamic_descriptor', 'final_auth'),
 				'googlepay_mcp_token_purchase' => array('order_id', 'amount', 'cust_id', 'network', 'data_key', 'threeds_server_trans_id', 'ds_trans_id', 'threeds_version', 'cavv', 'dynamic_descriptor', 'mcp_version', 'mcp_rate_token', 'cardholder_amount', 'cardholder_currency_code'),
 				'googlepay_mcp_token_preauth' => array('order_id', 'amount', 'cust_id', 'network', 'data_key', 'threeds_server_trans_id', 'ds_trans_id', 'threeds_version', 'cavv', 'dynamic_descriptor', 'final_auth', 'mcp_version', 'mcp_rate_token', 'cardholder_amount', 'cardholder_currency_code'),
 
