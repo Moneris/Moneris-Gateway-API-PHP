@@ -890,6 +890,12 @@ class mpgResponse
 		return $this->getMpgResponseValue($this->responseData,'AdviceCode');
 	}
 
+	//AccountName
+	public function getAccountNameResult()
+	{
+		return $this->getMpgResponseValue($this->responseData,'AccountNameVerificationResult');
+	}
+
 	//------------------------------------------------------------------------------------//
 
 	public function getResolveData()
@@ -2314,7 +2320,7 @@ class mpgRequest
  				//Basic
  				'batchclose' => array('ecr_number'),
  				'card_verification' =>array('order_id','cust_id','pan','expdate', 'crypt_type', 'tr_id', 'token_cryptogram'),
- 				'cavv_preauth' =>array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type','dynamic_descriptor', 'wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'tr_id', 'token_cryptogram'),
+ 				'cavv_preauth' =>array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type','dynamic_descriptor', 'wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'tr_id', 'token_cryptogram','is_incremental'),
  				'cavv_purchase' => array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type', 'dynamic_descriptor', 'network', 'data_type','wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id', 'ds_trans_id', 'tr_id', 'token_cryptogram'),
  				'completion' => array('order_id', 'comp_amount','txn_number', 'crypt_type', 'cust_id', 'dynamic_descriptor', 'ship_indicator'),
  				'contactless_purchase' => array('order_id','cust_id','amount','track2','pan','expdate', 'pos_code','dynamic_descriptor'),
@@ -2323,7 +2329,7 @@ class mpgRequest
  				'forcepost'=> array('order_id','cust_id','amount','pan','expdate','auth_code','crypt_type','dynamic_descriptor'),
  				'ind_refund' => array('order_id','cust_id', 'amount','pan','expdate', 'crypt_type','dynamic_descriptor'),
 	 			'opentotals' => array('ecr_number'),
-	 			'preauth' =>array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'market_indicator', 'cm_id', 'final_auth', 'tr_id', 'token_cryptogram'),
+	 			'preauth' =>array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'market_indicator', 'cm_id', 'final_auth', 'tr_id', 'token_cryptogram','is_incremental'),
 	 			'purchase'=> array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'market_indicator', 'cm_id', 'tr_id', 'token_cryptogram'),
 	 			'purchasecorrection' => array('order_id', 'txn_number', 'crypt_type', 'cust_id', 'dynamic_descriptor'),
 	 			'reauth' =>array('order_id','cust_id', 'amount', 'orig_order_id', 'txn_number', 'crypt_type', 'dynamic_descriptor'),
@@ -2351,7 +2357,7 @@ class mpgRequest
  				'res_add_cc' => array('cust_id','phone','email','note','pan','expdate','crypt_type', 'data_key_format'),
 				'res_add_token' => array('data_key','cust_id','phone','email','note','expdate','crypt_type', 'data_key_format'),
  				'res_card_verification_cc' => array('data_key','order_id', 'crypt_type', 'expdate', 'get_nt_response'),
- 				'res_cavv_preauth_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'get_nt_response'),
+ 				'res_cavv_preauth_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'get_nt_response','is_incremental'),
  				'res_cavv_purchase_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'get_nt_response'),
  				'res_delete' => array('data_key'),
  				'res_get_expiring' => array(),
@@ -2360,7 +2366,7 @@ class mpgRequest
  				'res_lookup_full' => array('data_key'),
 				'res_lookup_masked' => array('data_key'),
  				'res_mpitxn' => array('data_key','xid','amount','MD','merchantUrl','accept','userAgent','expdate'),
- 				'res_preauth_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator', 'final_auth', 'get_nt_response'),
+ 				'res_preauth_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator', 'final_auth', 'get_nt_response','is_incremental'),
  				'res_purchase_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator', 'get_nt_response'),
  				'res_temp_add' => array('pan','expdate','crypt_type','duration', 'data_key_format', 'anc1'),
  				'res_temp_tokenize' => array('order_id', 'txn_number', 'duration', 'crypt_type'),
@@ -2551,7 +2557,10 @@ class mpgRequest
 				//Installment Plans
 				'installment_info' => array('plan_id', 'plan_id_ref', 'tac_version'),
 				'installment_lookup' => array('order_id', 'amount','pan','expdate'),
-				'res_installment_lookup' => array('order_id', 'amount','data_key','expdate')
+				'res_installment_lookup' => array('order_id', 'amount','data_key','expdate'),
+
+				//Incremental Auth
+				'incremental_preauth' => array('order_id','txn_number','amount')
 			);
 
 	var $txnArray;
@@ -2753,6 +2762,12 @@ class mpgRequest
 			if($cof != null)
 			{
 				$txnXMLString .= $cof->toXML();
+			}
+
+			$anv  = $txnObj->getAccountNameVerification();
+			if($anv != null)
+			{
+				$txnXMLString .= $anv->toXML();
 			}
 
 			$installmentInfo = $txnObj->getInstallmentInfo();
@@ -3042,6 +3057,30 @@ class mpgCvdInfo
 
 }//end class
 
+##################### accountnameInfo ############################################
+
+class mpgAccountNameInfo
+{
+
+	var $params;
+	var $accountNameTemplate = array('first_name', 'middle_name', 'last_name');
+
+	public function __construct($params)
+	{
+		$this->params = $params;
+	}
+
+	public function toXML()
+	{
+		$xmlString = "";
+
+		foreach ($this->accountNameTemplate as $tag) {
+			$xmlString .= "<$tag>" . $this->params[$tag] . "</$tag>";
+		}
+
+		return "<account_name_verification>$xmlString</account_name_verification>";
+	}
+}
 ##################### mpgAchInfo ############################################
 
 class mpgAchInfo
@@ -3117,6 +3156,7 @@ class mpgTransaction
 	var $level23Data = null;
 	var $mcpRateInfo = null;
 	var $installmentInfo = null;
+	var $anv = null;
 
 	public function __construct($txn)
 	{
@@ -3179,6 +3219,15 @@ class mpgTransaction
 		$this->cof = $cof;	
 	}
 
+	public function  getAccountNameVerification()
+	{
+		return $this->anv;
+	}
+	public function setAccountNameVerification($anv)
+	{
+		$this->anv = $anv;
+	}
+
 	public function getInstallmentInfo()
 	{
 		return $this->installmentInfo;
@@ -3188,6 +3237,8 @@ class mpgTransaction
 	{
 		$this->installmentInfo = $installmentInfo;	
 	}
+
+
 	
 	public function getMCPRateInfo()
 	{

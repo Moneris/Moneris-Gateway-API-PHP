@@ -2,12 +2,12 @@
 
 require "../../mpgClasses.php";
 
-$store_id='store5';
-$api_token='yesguy';
-$orderid='ord-150816-11:55:18';
-$txnnumber='117735-0_10';
+$store_id='monca03650';
+$api_token='7Yw0MPTlhjBRcZiE6837';
+$orderid='ord-290824-5:27:32';
+$txnnumber='16204-0_879';
 
-$compamount='1.00';
+$compamount='200.00';
 $dynamic_descriptor='123';
 
 $ship_indicator = "F"; //optional
