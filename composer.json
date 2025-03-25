@@ -1,0 +1,12 @@
+{
+  "name": "moneris/unified",
+  "description": "Unified PHP SDK for Moneris",
+  "type": "library",
+  "require": {
+    "php": ">=5.6",
+    "ext-curl": "*"
+  },
+  "autoload": {
+    "classmap": ["eSELECTplus_PHP_NA_API_v105_Full/"]
+  }
+}
