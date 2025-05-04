@@ -2700,7 +2700,8 @@ class mpgRequest
 			$txnObj=$tmpTxnArray[$x];
 			$txn=$txnObj->getTransaction();
 
-			$txnType=array_shift($txn);
+			$txnType = $txn['type'];
+			unset($txn['type']);
 			if (($this->procCountryCode === "_US") && (strpos($txnType, "us_") !== 0))
 			{
 				if((strcmp($txnType, "txn") === 0) || (strcmp($txnType, "acs") === 0) || (strcmp($txnType, "group") === 0))
