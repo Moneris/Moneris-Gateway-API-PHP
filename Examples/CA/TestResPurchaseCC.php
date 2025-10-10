@@ -4,12 +4,12 @@ require "../../mpgClasses.php";
 
 /************************ Request Variables **********************************/
 
-$store_id='monca00597';
-$api_token='O27AbCbxQorPggMQe6hU';
+$store_id='moneris';
+$api_token='hurgle';
 
 /************************ Transaction Variables ******************************/
 
-$data_key='4HIme0ZGURXE3NRBXHUj6nSc4';
+$data_key='yOhbwgj8TI1aLNsy4jznrpbI2';
 $orderid='res-purch-'.date("dmy-G:i:s");
 $amount='18.00';
 $custid='customer1';
@@ -55,6 +55,11 @@ $installmentInfo->setPlanIdRef("0000000065");
 $installmentInfo->setTacVersion("2");
 
 //$mpgTxn->setInstallmentInfo($installmentInfo);
+
+/******************* Surcharge Info *OPTIONAL* **********************************/
+$surchargeInfo = new SurchargeInfo();
+$surchargeInfo->setSurchargeAmount("1.00");
+$mpgTxn->setSurchargeInfo($surchargeInfo);
 
 /************************ Request Object **********************************/
 

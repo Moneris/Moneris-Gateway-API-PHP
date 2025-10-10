@@ -60,11 +60,18 @@ $cof->setIssuerId("139X3130ASCXAS9");
 
 $mpgTxn->setCofInfo($cof);
 
+/******************* Surcharge Info *OPTIONAL* **********************************/
+$surchargeInfo = new SurchargeInfo();
+$surchargeInfo->setSurchargeAmount("1.00");
+$mpgTxn->setSurchargeInfo($surchargeInfo);
+
+
 /******************************* Request Object **********************************/
 
 $mpgRequest = new mpgRequest($mpgTxn);
 $mpgRequest->setProcCountryCode("CA"); //"US" for sending transaction to US environment
 $mpgRequest->setTestMode(true); //false or comment out this line for production transactions
+
 
 /****************************** HTTPS Post Object *******************************/
 

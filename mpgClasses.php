@@ -8,7 +8,7 @@ class mpgGlobals
 	var $Globals=array(
         	        'MONERIS_PROTOCOL' => 'https',
 					'MONERIS_HOST' => 'mpg1.moneris.io', //default
-					'MONERIS_TEST_HOST' => 'mpg1t.moneris.io',
+					'MONERIS_TEST_HOST' => 'esqa.moneris.com',
 					'MONERIS_US_HOST' => 'esplus.moneris.com',
 					'MONERIS_US_TEST_HOST' => 'esplusqa.moneris.com',
         	        'MONERIS_PORT' =>'443',
@@ -60,7 +60,6 @@ class httpsPost
 		$connectTimeOut = $gArray['CONNECT_TIMEOUT'];
 		$clientTimeOut = $gArray['CLIENT_TIMEOUT'];
 		$apiVersion = $gArray['API_VERSION'];
-		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$this->url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
@@ -427,11 +426,13 @@ class mpgResponse
 			$firstInstallment->setUpfrontFee($this->planDataHash[$planID]["FirstInstallment"]["UpfrontFee"]);
 			$firstInstallment->setInstallmentFee($this->planDataHash[$planID]["FirstInstallment"]["InstallmentFee"]);
 			$firstInstallment->setAmount($this->planDataHash[$planID]["FirstInstallment"]["Amount"]);
+			$firstInstallment->setTotalAmount($this->planDataHash[$planID]["FirstInstallment"]["TotalAmount"]);
 			$installmentPlans[$pIndx]->setFirstInstallment($firstInstallment);
 			
 			$lastInstallment = new LastInstallment();
 			$lastInstallment->setInstallmentFee($this->planDataHash[$planID]["LastInstallment"]["InstallmentFee"]);
 			$lastInstallment->setAmount($this->planDataHash[$planID]["LastInstallment"]["Amount"]);
+			$lastInstallment->setTotalAmount($this->planDataHash[$planID]["LastInstallment"]["TotalAmount"]);
 			$installmentPlans[$pIndx]->setLastInstallment($lastInstallment);
 			
 			$tacCount = count($this->tacHash[$planID]);
@@ -711,6 +712,23 @@ class mpgResponse
 	public function getRecurEndDate()
 	{
 		return $this->getMpgResponseValue($this->responseData,'RecurEndDate');
+	}
+	//----------------------------Surcharge response fields ----------------------------//
+	public function getMaxSurchargeRate()
+	{
+		return $this->getMpgResponseValue($this->responseData,'MaxSurchargeRate');
+	}
+	public function getMaxSurchargeAmount()
+	{
+		return $this->getMpgResponseValue($this->responseData,'MaxSurchargeAmount');
+	}
+	public function getIsSurchargeEligible()
+	{
+		return $this->getMpgResponseValue($this->responseData,'IsSurchargeEligible');
+	}
+	public function getServiceType()
+	{
+		return $this->getMpgResponseValue($this->responseData,'ServiceType');
 	}
 	
 	//--------------------------- MCP response fields ----------------------------//
@@ -2370,7 +2388,7 @@ class mpgRequest
  				'res_purchase_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator', 'get_nt_response'),
  				'res_temp_add' => array('pan','expdate','crypt_type','duration', 'data_key_format', 'anc1'),
  				'res_temp_tokenize' => array('order_id', 'txn_number', 'duration', 'crypt_type'),
-				'res_tokenize_cc' => array('order_id','txn_number','cust_id','phone','email','note', 'data_key_format', 'return_issuer_id'),
+				'res_tokenize_cc' => array('order_id','txn_number','cust_id','phone','email','note', 'data_key_format'),
 				'res_update_cc' => array('data_key','cust_id','phone','email','note','pan','expdate','crypt_type'),
  				'res_forcepost_cc' => array('order_id','cust_id','amount','data_key','auth_code', 'crypt_type','dynamic_descriptor', 'get_nt_response'),
  				
@@ -2458,7 +2476,7 @@ class mpgRequest
  				'us_res_purchase_cc' => array('data_key','order_id','cust_id','amount','crypt_type','commcard_invoice','commcard_tax_amount','dynamic_descriptor'),
  				'us_res_purchase_pinless' => array('data_key','order_id','cust_id','amount','intended_use','p_account_number'),
  				'us_res_temp_add' => array('pan','expdate','duration','crypt_type', 'data_key_format'),	
- 				'us_res_tokenize_cc' => array('order_id','txn_number','cust_id','phone','email','note', 'data_key_format', 'return_issuer_id'),
+ 				'us_res_tokenize_cc' => array('order_id','txn_number','cust_id','phone','email','note', 'data_key_format'),
  				'us_res_update_cc' => array('data_key','cust_id','phone','email','note','pan','expdate','crypt_type'),
  				'us_res_update_ach' => array('data_key','cust_id','phone','email','note'),
  				'us_res_update_pinless' => array('data_key','cust_id','phone','email','note','pan','expdate','presentation_type','p_account_number'),
@@ -2557,7 +2575,11 @@ class mpgRequest
 				//Installment Plans
 				'installment_info' => array('plan_id', 'plan_id_ref', 'tac_version'),
 				'installment_lookup' => array('order_id', 'amount','pan','expdate'),
-				'res_installment_lookup' => array('order_id', 'amount','data_key','expdate')
+				'res_installment_lookup' => array('order_id', 'amount','data_key','expdate'),
+
+				//Surcharge
+				'surcharge_lookup' => array('pan','amount'),
+				'res_surcharge_lookup' => array('data_key','amount'),
 			);
 
 	var $txnArray;
@@ -2814,7 +2836,12 @@ class mpgRequest
    			{
    				$txnXMLString .= "<rate_info>".$mcpRateInfo->toXML()."</rate_info>";
    			}
-   			
+
+   			$surcharge = $txnObj->getSurchargeInfo();
+			 if($surcharge != null)
+   			{
+   				$txnXMLString .= $surcharge->toXML();
+   			}
    			$txnXMLString .="</$txnType>";
    			
    			//for risk transactions only
@@ -3079,6 +3106,35 @@ class mpgAccountNameInfo
 	}
 }
 ##################### mpgAchInfo ############################################
+class surchargeInfo
+{
+	private $params = [];
+	private $surchargeTemplate = ['surcharge_amount'];
+
+	public function __construct()
+	{
+	}
+
+	public function setSurchargeAmount($value)
+	{
+		if (!is_numeric($value) || $value < 0) {
+			throw new InvalidArgumentException("Surcharge amount must be a non-negative numeric value.");
+		}
+		$this->params['surcharge_amount'] = $value;
+	}
+
+	public function toXML()
+	{
+		$xmlString = "<surcharge_info>";
+		foreach ($this->surchargeTemplate as $tag) {
+			if (isset($this->params[$tag])) {
+				$xmlString .= "<$tag>" . htmlspecialchars($this->params[$tag], ENT_XML1, 'UTF-8') . "</$tag>";
+			}
+		}
+		$xmlString .= "</surcharge_info>";
+		return $xmlString;
+	}
+}
 
 class mpgAchInfo
 {
@@ -3154,6 +3210,7 @@ class mpgTransaction
 	var $mcpRateInfo = null;
 	var $installmentInfo = null;
 	var $anv = null;
+	var $surchargeInfo = null;
 
 	public function __construct($txn)
 	{
@@ -3305,6 +3362,14 @@ class mpgTransaction
 	public function getLevel23Data()
 	{
 		return $this->level23Data;
+	}
+	public function setSurchargeInfo($surchargeInfo)
+	{
+		$this->surchargeInfo = $surchargeInfo;
+	}
+	public function getSurchargeInfo()
+	{
+		return $this->surchargeInfo;
 	}
 
 }//end class mpgTransaction
@@ -7600,7 +7665,7 @@ class PromotionInfo {
 
 class FirstInstallment {
 	// Properties
-	public $upfrontFee, $installmentFee, $amount;
+	public $upfrontFee, $installmentFee, $amount, $totalAmount;
   
 	// Methods
 	function getUpfrontFee() {
@@ -7626,11 +7691,18 @@ class FirstInstallment {
 	function setAmount($amount) {
 		$this->amount = $amount;
 	}
+
+	function getTotalAmount() {
+		return  $this->totalAmount;
+	}
+	function setTotalAmount($totalAmount) {
+		$this->totalAmount = $totalAmount;
+	}
 }
 
 class LastInstallment {
 	// Properties
-	public $installmentFee, $amount;
+	public $installmentFee, $amount, $totalAmount;
   
 	// Methods
 	function getInstallmentFee() {
@@ -7647,6 +7719,12 @@ class LastInstallment {
 
 	function setAmount($amount) {
 		$this->amount = $amount;
+	}
+	function getTotalAmount() {
+		return  $this->totalAmount;
+	}
+	function setTotalAmount($totalAmount) {
+		$this->totalAmount = $totalAmount;
 	}
 }
 

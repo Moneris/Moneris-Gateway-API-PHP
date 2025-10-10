@@ -60,6 +60,12 @@ $cof->setIssuerId("139X3130ASCXAS9");
 
 $mpgTxn->setCofInfo($cof);
 
+/******************* Surcharge Info *OPTIONAL* **********************************/
+$surchargeInfo = new SurchargeInfo();
+$surchargeInfo->setSurchargeAmount("1.00");
+$mpgTxn->setSurchargeInfo($surchargeInfo);
+
+
 /******************************* Request Object **********************************/
 
 $mpgRequest = new mpgRequest($mpgTxn);

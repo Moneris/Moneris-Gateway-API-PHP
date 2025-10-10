@@ -10,7 +10,7 @@ $api_token='7Yw0MPTlhjBRcZiE6837';
 $type='preauth';
 $cust_id='cust id';
 $order_id='ord-'.date("dmy-G:i:s");
-$amount='4840.00';
+$amount='50.00';
 $pan='5454545454545454';
 $expdate='2212';
 $crypt='7';
@@ -54,14 +54,17 @@ $installmentInfo->setPlanIdRef("0000000065");
 $installmentInfo->setTacVersion("2");
 
 //$mpgTxn->setInstallmentInfo($installmentInfo);
-
+/******************* Surcharge Info *OPTIONAL* **********************************/
+$surchargeInfo = new SurchargeInfo();
+$surchargeInfo->setSurchargeAmount("1.00");
+$mpgTxn->setSurchargeInfo($surchargeInfo);
 
 $mpgRequest = new mpgRequest($mpgTxn);
 $mpgRequest->setProcCountryCode("CA"); //"US" for sending transaction to US environment
 $mpgRequest->setTestMode(true); //false or comment out this line for production transactions
-
+//print request
+print($mpgRequest->toXML());
 $mpgHttpPost  =new mpgHttpsPost($store_id,$api_token,$mpgRequest);
-
 $mpgResponse=$mpgHttpPost->getMpgResponse();
 
 print("\nCardType = " . $mpgResponse->getCardType());

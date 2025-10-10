@@ -29,6 +29,12 @@ $txnArray=array('type'=>'completion',
 
 $mpgTxn = new mpgTransaction($txnArray);
 
+/******************* Surcharge Info *OPTIONAL* **********************************/
+$surchargeInfo = new SurchargeInfo();
+$surchargeInfo->setSurchargeAmount("1.00");
+$mpgTxn->setSurchargeInfo($surchargeInfo);
+
+
 ## step 3) create a mpgRequest object passing the transaction object created
 ## in step 2
 $mpgRequest = new mpgRequest($mpgTxn);

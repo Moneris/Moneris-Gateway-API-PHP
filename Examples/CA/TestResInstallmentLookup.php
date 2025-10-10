@@ -11,7 +11,7 @@ $api_token='7Yw0MPTlhjBRcZiE6837';
 
 $type='res_installment_lookup';
 $order_id='Test'.date("dmy-G:i:s");
-$amount='600.00';
+$amount='1000.00';
 $data_key='8cwY6hotzkM362ygNiyt1BtY0';
 $expdate='2212'; //For Temp Token
 
@@ -107,11 +107,13 @@ for ($i = 0; $i < $planCount; $i++)
         print("\nUpfrontFee = " . $firstInstallment->getUpfrontFee());
         print("\nInstallmentFee = " . $firstInstallment->getInstallmentFee());
         print("\nAmount = " . $firstInstallment->getAmount());
+        print("\nTotalAmount = " . $firstInstallment->getTotalAmount());
 
         $lastInstallment = $installmentPlans[$i]->getLastInstallment();
 
         print("\nInstallmentFee = " . $lastInstallment->getInstallmentFee());
         print("\nAmount = " . $lastInstallment->getAmount());
+        print("\nTotalAmount = " . $lastInstallment->getTotalAmount());
 
         print("\nAPR = " . $installmentPlans[$i]->getAPR());
         print("\nTotalFees = " . $installmentPlans[$i]->getTotalFees());

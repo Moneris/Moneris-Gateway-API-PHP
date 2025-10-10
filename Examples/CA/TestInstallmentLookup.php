@@ -117,11 +117,13 @@ for ($i = 0; $i < $planCount; $i++)
         print("\nUpfrontFee = " . $firstInstallment->getUpfrontFee());
         print("\nInstallmentFee = " . $firstInstallment->getInstallmentFee());
         print("\nAmount = " . $firstInstallment->getAmount());
+        print("\nTotalAmount = " . $firstInstallment->getTotalAmount());
 
         $lastInstallment = $installmentPlans[$i]->getLastInstallment();
 
         print("\nInstallmentFee = " . $lastInstallment->getInstallmentFee());
         print("\nAmount = " . $lastInstallment->getAmount());
+        print("\nTotalAmount = " . $lastInstallment->getTotalAmount());
 
         print("\nAPR = " . $installmentPlans[$i]->getAPR());
         print("\nTotalFees = " . $installmentPlans[$i]->getTotalFees());
