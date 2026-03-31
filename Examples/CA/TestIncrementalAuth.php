@@ -2,25 +2,19 @@
 
 require "../../mpgClasses.php";
 
-$store_id='store5';
-$api_token='yesguy';
-$orderid='ord-150816-11:55:18';
-$txnnumber='117735-0_10';
+$store_id='monca03650';
+$api_token='7Yw0MPTlhjBRcZiE6837';
+$orderid='ord-290824-5:27:32';
+$txnnumber='16204-0_879';
 
-$compamount='1.00';
-$dynamic_descriptor='123';
-
-$ship_indicator = "F"; //optional
+$amount='20.20';
 
 ## step 1) create transaction array ###
-$txnArray=array('type'=>'completion',
-         'txn_number'=>$txnnumber,
+$txnArray=array('type'=>'incremental_preauth',
          'order_id'=>$orderid,
-         'comp_amount'=>$compamount,
-         'crypt_type'=>'7',
-         'cust_id'=>'customer ID',
+         'txn_number'=>$txnnumber,
+         'amount'=>$amount
          //'ship_indicator'=>$ship_indicator, //optional
-         'dynamic_descriptor'=>$dynamic_descriptor
            );
 
 
@@ -28,12 +22,6 @@ $txnArray=array('type'=>'completion',
 ## step 1.
 
 $mpgTxn = new mpgTransaction($txnArray);
-
-/******************* Surcharge Info *OPTIONAL* **********************************/
-$surchargeInfo = new SurchargeInfo();
-$surchargeInfo->setSurchargeAmount("1.00");
-$mpgTxn->setSurchargeInfo($surchargeInfo);
-
 
 ## step 3) create a mpgRequest object passing the transaction object created
 ## in step 2

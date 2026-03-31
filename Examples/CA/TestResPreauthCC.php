@@ -55,6 +55,11 @@ $installmentInfo->setTacVersion("2");
 
 //$mpgTxn->setInstallmentInfo($installmentInfo);
 
+/******************* Surcharge Info *OPTIONAL* **********************************/
+$surchargeInfo = new SurchargeInfo();
+$surchargeInfo->setSurchargeAmount("1.00");
+$mpgTxn->setSurchargeInfo($surchargeInfo);
+
 /************************ Request Object **********************************/
 
 $mpgRequest = new mpgRequest($mpgTxn);
