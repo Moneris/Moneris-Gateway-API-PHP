@@ -371,18 +371,27 @@ class mpgResponse
 	var $inFirstInstallment = false;
 	var $inLastInstallment = false;
 
- 	public function __construct($xmlString)
+ 	public function __construct($xmlString)	
  	{
-  		$this->p = xml_parser_create();
-  		xml_parser_set_option($this->p,XML_OPTION_CASE_FOLDING,0);
-  		xml_parser_set_option($this->p,XML_OPTION_TARGET_ENCODING,"UTF-8");
-  		xml_set_object($this->p,$this);
-  		xml_set_element_handler($this->p,"startHandler","endHandler");
-  		xml_set_character_data_handler($this->p,"characterHandler");
-  		xml_parse($this->p,$xmlString);
-  		xml_parser_free($this->p);
+	    $this->p = xml_parser_create();
 
- 	}	//end of constructor
+	    xml_parser_set_option($this->p, XML_OPTION_CASE_FOLDING, 0);
+	    xml_parser_set_option($this->p, XML_OPTION_TARGET_ENCODING, "UTF-8");
+
+	    xml_set_element_handler(
+	        $this->p,
+	        [$this, 'startHandler'],
+	        [$this, 'endHandler']
+	    );
+
+	    xml_set_character_data_handler(
+	        $this->p,
+	        [$this, 'characterHandler']
+	    );
+
+	    xml_parse($this->p, $xmlString);
+	    xml_parser_free($this->p);
+	}	//end of constructor
 
  	public function getMpgResponseData()
 	{
@@ -3912,20 +3921,27 @@ class riskResponse{
 	var $results = array();
 	var $rules = array();
 
-	public function __construct($xmlString)
+	public function __construct($xmlString)	
 	{
+	    $this->p = xml_parser_create();
 
-		$this->p = xml_parser_create();
-		xml_parser_set_option($this->p,XML_OPTION_CASE_FOLDING,0);
-		xml_parser_set_option($this->p,XML_OPTION_TARGET_ENCODING,"UTF-8");
-		xml_set_object($this->p,$this);
-		xml_set_element_handler($this->p,"startHandler","endHandler");
-		xml_set_character_data_handler($this->p,"characterHandler");
-		xml_parse($this->p,$xmlString);
-		xml_parser_free($this->p);
+	    xml_parser_set_option($this->p, XML_OPTION_CASE_FOLDING, 0);
+	    xml_parser_set_option($this->p, XML_OPTION_TARGET_ENCODING, "UTF-8");
 
-	}//end of constructor
+	    xml_set_element_handler(
+	        $this->p,
+	        [$this, 'startHandler'],
+	        [$this, 'endHandler']
+	    );
 
+	    xml_set_character_data_handler(
+	        $this->p,
+	        [$this, 'characterHandler']
+	    );
+
+	    xml_parse($this->p, $xmlString);
+	    xml_parser_free($this->p);
+	}	//end of constructor
 
 	public function getRiskResponse()
 	{
