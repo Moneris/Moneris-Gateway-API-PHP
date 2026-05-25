@@ -11,12 +11,18 @@ $api_token='7Yw0MPTlhjBRcZiE6837';
 
 $type='purchase';
 $order_id='Test'.date("dmy-G:i:s");
-$amount='4840.00';
-$pan='5454545454545454';
+$amount='10.00';
+$pan='4242424242424242';
 $expdate='2212';
 $crypt='7';
 $dynamic_descriptor='123';
 $status_check = 'false';
+
+$consent_id = '079070e7-125d-47ca-87ee-a667d2e656f4';
+$cryptogram = 'eyJraWQiOiJpZGlyZWN0LXRva2VuLWp3cy0wMDEiLCJhbGciOiJFUzI1NiJ9..aSJxeA1nCiRLFgeMgENXQWNdBVu0iZEdejBP4K6J__kN_448ysHzr0LyWi3W0Eg8nRVDen5pHZVH5ZtXpyDkjQ';
+$cryptogram_expiry = '2025-02-05T16:48:49.000Z';
+$payment_method = 'BANK_ACCOUNT_CHEQUING';
+$channel = 'DESKTOP_WEB';
 
 // TrId and TokenCryptogram are optional, refer documentation for more details.
 $tr_id = '50189815682';
@@ -50,6 +56,18 @@ $cof->setIssuerId("139X3130ASCXAS9");
 
 $mpgTxn->setCofInfo($cof);
 
+/******************* PBB Info **********************************/
+
+$pbb_info = new PbbInfo();
+$pbb_info->setConsentId($consent_id);
+$pbb_info->setCryptogram($cryptogram);
+$pbb_info->setCryptogramExpiry($cryptogram_expiry);
+$pbb_info->setPaymentMethod($payment_method);
+$pbb_info->setChannel($channel);
+
+$mpgTxn->setPbbInfo($pbb_info);
+
+
 /******************* Installment Info *OPTIONAL* **********************************/
 
 $installmentInfo = new InstallmentInfo();
@@ -61,8 +79,8 @@ $installmentInfo->setTacVersion("2");
 
 /******************* Surcharge Info *OPTIONAL* **********************************/
 $surchargeInfo = new SurchargeInfo();
-$surchargeInfo->setSurchargeAmount("1.00");
-$mpgTxn->setSurchargeInfo($surchargeInfo);
+$surchargeInfo->setSurchargeAmount("0.01");
+//$mpgTxn->setSurchargeInfo($surchargeInfo);
 
 
 /****************************** Request Object *******************************/

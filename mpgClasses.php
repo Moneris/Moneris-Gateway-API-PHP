@@ -60,6 +60,7 @@ class httpsPost
 		$connectTimeOut = $gArray['CONNECT_TIMEOUT'];
 		$clientTimeOut = $gArray['CLIENT_TIMEOUT'];
 		$apiVersion = $gArray['API_VERSION'];
+		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$this->url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
@@ -69,13 +70,13 @@ class httpsPost
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $connectTimeOut);
 		curl_setopt($ch, CURLOPT_TIMEOUT, $clientTimeOut);
 		curl_setopt($ch, CURLOPT_USERAGENT, $apiVersion);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, TRUE);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 		//curl_setopt($ch, CURLOPT_CAINFO, "PATH_TO_CA_BUNDLE");
 		
 		$this->response=curl_exec ($ch);
 		
-		curl_close ($ch);
+	//	curl_close ($ch);
 		
 		if($this->debug == true)
 		{
@@ -102,6 +103,7 @@ class mpgHttpsPost
  	var $xmlString;
  	var $txnType;
  	var $isMPI;
+	 var $isMPI2;
 
  	public function __construct($storeid,$apitoken,$mpgRequestOBJ)
  	{
@@ -309,6 +311,16 @@ class mpgResponse
  	var $refundHash;
  	var $correctionHash = array();
  	var $isBatchTotals;
+	var $isMerchantRequiredContactFields = false;
+	var $merchantRequiredContactFields = array();
+	var $isMerchantSupportedPaymentMethods = false;
+	var $merchantSupportedPaymentMethods = array();
+	var $isItems = false;
+	var $items = array(array());
+	var $countItems = 0;
+	var $isAdditionalFees = false;
+	var $additionalFees = array();
+	var $countAdditionalFee = 0;
  	var $term_id;
  	var $receiptHash = array();
  	var $ecrHash = array();
@@ -370,23 +382,42 @@ class mpgResponse
 	var $inFirstInstallment = false;
 	var $inLastInstallment = false;
 
+	//PBB
+	var $isTransactionData = false;
+	var $isItem = false;
+	var $isOrder = false;
+	var $transactionDataHash= array();
+	var $orderHash=array();
+	var $itemHash=array();
+	var $isReccuringInfo = false;
+	var $reccuringInfoHash = array();
+	var $tokenMetaData;
+
+	var $itemsHash=array();
+
  	public function __construct($xmlString)
  	{
-  		$this->p = xml_parser_create();
-  		xml_parser_set_option($this->p,XML_OPTION_CASE_FOLDING,0);
-  		xml_parser_set_option($this->p,XML_OPTION_TARGET_ENCODING,"UTF-8");
-  		xml_set_object($this->p,$this);
-  		xml_set_element_handler($this->p,"startHandler","endHandler");
-  		xml_set_character_data_handler($this->p,"characterHandler");
-  		xml_parse($this->p,$xmlString);
-  		xml_parser_free($this->p);
+		$this->p = xml_parser_create();
+		xml_parser_set_option($this->p, XML_OPTION_CASE_FOLDING, 0);
+		xml_parser_set_option($this->p, XML_OPTION_TARGET_ENCODING, "UTF-8");
 
- 	}	//end of constructor
+// Use object callables instead of xml_set_object + string function names
+		xml_set_element_handler($this->p, [$this, 'startHandler'], [$this, 'endHandler']);
+		xml_set_character_data_handler($this->p, [$this, 'characterHandler']);
+
+// Parse the XML
+		xml_parse($this->p, $xmlString);
+
+// No need to free the parser — PHP 8.5 automatically cleans it up
+
+
+	}	//end of constructor
 
  	public function getMpgResponseData()
 	{
    		return($this->responseData);
  	}
+
 
 
 	public function getEligibleInstallmentPlans()
@@ -730,7 +761,110 @@ class mpgResponse
 	{
 		return $this->getMpgResponseValue($this->responseData,'ServiceType');
 	}
-	
+
+
+
+	//PBB response
+
+	public function getTokenType()
+	{
+		return $this->getMpgResponseValue($this->responseData,'TokenType');
+	}
+
+	public function getExpiresIn()
+	{
+		return $this->getMpgResponseValue($this->responseData,'ExpiresIn');
+	}
+
+	public function getExtExpiresIn()
+	{
+		return $this->getMpgResponseValue($this->responseData,'ExtExpiresIn');
+	}
+
+	public function getAccessToken()
+	{
+		return $this->getMpgResponseValue($this->responseData,'AccessToken');
+	}
+
+	public function getCreatedOn()
+	{
+		return $this->getMpgResponseValue($this->responseData,'CreatedOn');
+	}
+	public function getConsentId()
+	{
+		return $this->getMpgResponseValue($this->responseData,'ConsentId');
+	}
+
+	public function getTransactionRef()
+	{
+		return $this->getMpgResponseValue($this->responseData,'TransactionRef');
+	}
+	public function getPaymentMethod()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'PaymentMethod');
+	}
+	public function getTransactionType()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'TransactionType');
+	}
+	public function getPBBPaymentType()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'PaymentType');
+	}
+	public function getCurrency()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'Currency');
+	}
+	public function getAmount()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'Amount');
+	}
+	public function getTransactionRef2()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'TransactionRef');
+	}
+	public function getTokenExpiry()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'TokenExpiry');
+	}
+	public function getPaymentToken()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'PaymentToken');
+	}
+
+	public function getConsentId2()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'ConsentId');
+	}
+
+	public function getCryptogram()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'Cryptogram');
+	}
+	public function getCryptogramExpiry()
+	{
+		return $this->getMpgResponseValue($this->transactionDataHash,'CryptogramExpiry');
+	}
+	public function getPaymentMethod2()
+	{
+		return $this->getMpgResponseValue($this->responseData,'PaymentMethod');
+	}
+	public function getTokenPanLastDigits()
+	{
+		return $this->getMpgResponseValue($this->responseData,'TokenPanLastDigits');
+	}
+
+	public function  getItems()
+	{
+
+	}
+
+
+
+
+
+
+
 	//--------------------------- MCP response fields ----------------------------//
 	
 	//MCP Fields
@@ -906,6 +1040,63 @@ class mpgResponse
 	public function getAdviceCode()
 	{
 		return $this->getMpgResponseValue($this->responseData,'AdviceCode');
+	}
+
+	public function getPBBLifeCycleTraceId() {
+		return $this->getMpgResponseValue($this->responseData,'PBBLifeCycleTraceId');
+	}
+
+
+	public function getName() {
+		return $this->getMpgResponseValue($this->responseData,'Name');
+	}
+
+	public function getEmail() {
+		return $this->getMpgResponseValue($this->responseData,'Email');
+	}
+
+	public function getPhoneNumber() {
+		return $this->getMpgResponseValue($this->responseData,'PhoneNumber');
+	}
+
+	public function getAuthMethod() {
+		return $this->getMpgResponseValue($this->responseData,'AuthMethod');
+	}
+
+	public function getUserType() {
+		return $this->getMpgResponseValue($this->responseData,'UserType');
+	}
+
+	public function getStatus() {
+		return $this->getMpgResponseValue($this->responseData,'Status');
+	}
+
+	public function getMerchantOrderRef() {
+		return $this->getMpgResponseValue($this->responseData,'MerchantOrderRef');
+	}
+
+	public function getMerchantCustomerRef() {
+		return $this->getMpgResponseValue($this->responseData,'MerchantCustomerRef');
+	}
+
+	public function getPlacementMode() {
+		return $this->getMpgResponseValue($this->responseData,'PlacementMode');
+	}
+
+	public function getShipmentType() {
+		return $this->getMpgResponseValue($this->responseData,'ShipmentType');
+	}
+
+	public function getSubTotal() {
+		return $this->getMpgResponseValue($this->responseData,'SubTotal');
+	}
+
+	public function getTax() {
+		return $this->getMpgResponseValue($this->responseData,'Tax');
+	}
+
+	public function getShippingCost() {
+		return $this->getMpgResponseValue($this->responseData,'ShippingCost');
 	}
 
 	//AccountName
@@ -1919,6 +2110,10 @@ class mpgResponse
 	{
 		return $this->getMpgResponseValue($this->responseData,"Par");
 	}
+	public function getECI()
+	{
+		return $this->getMpgResponseValue($this->responseData,"Eci");
+	}
 
 	private function characterHandler($parser,$data)
 	{
@@ -2052,6 +2247,52 @@ class mpgResponse
 			$this->isInstallmentResult = true;
 			$this->installmentResHash = array();
 		}
+
+		//PBB
+		elseif ($this->currentTag == "TransactionData")
+		{
+			$this->isTransactionData = true;
+			$this->transactionDataHash = array();
+		}
+		elseif ($this->currentTag == "Order")
+		 {
+			 $this-> isOrder = true;
+			 $this->orderHash= array();
+
+		 }
+		 elseif($this->currentTag =="items")  {
+			 $this->isItems = true;
+			 $this->itemHash = array();
+		 }
+	    elseif ($this->currentTag == "Items") {
+		    $this->isItems = true;
+			$this->countItems = 0;
+		    $this->items = array();
+	    }
+		if($this->isItems){
+			if($this->currentTag == "Item") {
+				$this->isItem = true;
+				$this->itemHash = array();
+				$this->items[$this->countItems] = array();
+			}
+			if($this->isItem && $this->currentTag == "RecurringInfo") {
+				$this->isReccuringInfo = true;
+				$this->reccuringInfoHash = array();
+			}
+		}
+	    elseif ($this->currentTag == "AdditionalFees") {
+		    $this->isAdditionalFees = true;
+			$this->countAdditionalFee = 0;
+			$this->additionalFees = array();
+	    }
+	    elseif ($this->currentTag == "MerchantRequiredContactField")
+	    {
+		    $this->isMerchantRequiredContactFields = true;
+	    }
+	    elseif ($this->currentTag == "MerchantSupportedPaymentMethod")
+	    {
+		    $this->isMerchantSupportedPaymentMethods = true;
+	    }
 	}
 
 	private function endHandler($parser,$name)
@@ -2121,6 +2362,66 @@ class mpgResponse
 					}
 			}
 			
+		} elseif ($this->isItems) {
+			if ($this->isReccuringInfo && $this->currentTag !== "RecurringInfo") {
+				$this->reccuringInfoHash[$this->currentTag] = $this->currentTagValue;
+			} else {
+				switch ($this->currentTag) {
+					case "ItemRef":
+					{
+						$this->items[$this->countItems]["ItemRef"] = $this->currentTagValue;
+						break;
+					}
+					case "ItemPaymentType":
+					{
+						$this->items[$this->countItems]["ItemPaymentType"] = $this->currentTagValue;
+						break;
+					}
+					case "Amount":
+					{
+						$this->items[$this->countItems]["Amount"] = $this->currentTagValue;
+						break;
+					}
+					case "Quantity":
+					{
+						$this->items[$this->countItems]["Quantity"] = $this->currentTagValue;
+						break;
+					}
+					case "Description":
+					{
+						$this->items[$this->countItems]["Description"] = $this->currentTagValue;
+						break;
+					}
+					case "ItemType":
+					{
+						$this->items[$this->countItems]["ItemType"] = $this->currentTagValue;
+						break;
+					}
+					case "itemName":
+					{
+						$this->items[$this->countItems]["itemName"] = $this->currentTagValue;
+						break;
+					}
+				}
+			}
+		}
+
+
+		elseif ($this->isAdditionalFees)
+		{
+			switch ($this->currentTag)
+			{
+				case "FeeName":
+				{
+					$this->additionalFees[$this->countAdditionalFee]["FeeName"] = $this->currentTagValue;
+					break;
+				}
+				case "FeeAmount":
+				{
+					$this->additionalFees[$this->countAdditionalFee]["FeeAmount"] = $this->currentTagValue;
+					break;
+				}
+			}
 		}
 		elseif($this->isResolveData && $this->currentTag != "ResolveData")
 		{
@@ -2222,6 +2523,18 @@ class mpgResponse
 		{
 			$this->installmentResHash[$this->currentTag]=$this->currentTagValue;
 		}
+		elseif ($this->isTransactionData && $this->currentTagValue != 'null')
+		{
+			$this->transactionDataHash[$this->currentTag]=$this->currentTagValue;
+		}
+		elseif ($this->isMerchantRequiredContactFields)
+		{
+			$this->merchantRequiredContactFields[] = $this->currentTagValue;
+		}
+		elseif($this->isMerchantSupportedPaymentMethods)
+		{
+			$this->merchantSupportedPaymentMethods[] = $this->currentTagValue;
+		}
 		else
 		{
 			$this->responseData[$this->currentTag] = $this->currentTagValue;
@@ -2322,6 +2635,40 @@ class mpgResponse
 		{
 			$this->isInstallmentResult=0;
 		}
+		elseif ($this->currentTag == "TransactionData")
+		{
+			$this->isTransactionData=0;
+		}
+		elseif ($this->currentTag == "MerchantRequiredContactField")
+		{
+			$this->isMerchantRequiredContactFields = false;
+		}
+		elseif ($this->currentTag == "MerchantSupportedPaymentMethod")
+		{
+			$this->isMerchantSupportedPaymentMethods = false;
+		}
+		elseif ($this->currentTag == "Items")
+		{
+			$this->isItems = false;
+		}
+		elseif ($this->currentTag == "Item")
+		{
+			$this->countItems++;
+			$this->isItem = false;
+		}
+		elseif($this->currentTag == "RecurringInfo")
+		{
+			$this->items[$this->countItems]["RecurringInfo"] = $this->reccuringInfoHash;
+			$this->isReccuringInfo = false;
+		}
+		elseif ($this->currentTag == "AdditionalFees")
+		{
+			$this->isAdditionalFees = false;
+		}
+		elseif ($this->currentTag == "AdditionalFee")
+		{
+			$this->countAdditionalFee++;
+		}
 
  		$this->currentTag="/dev/null";
 	}
@@ -2338,7 +2685,7 @@ class mpgRequest
  				//Basic
  				'batchclose' => array('ecr_number'),
  				'card_verification' =>array('order_id','cust_id','pan','expdate', 'crypt_type', 'tr_id', 'token_cryptogram'),
- 				'cavv_preauth' =>array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type','dynamic_descriptor', 'wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'tr_id', 'token_cryptogram'),
+ 				'cavv_preauth' =>array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type','dynamic_descriptor', 'wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'tr_id', 'token_cryptogram','is_incremental'),
  				'cavv_purchase' => array('order_id','cust_id', 'amount', 'pan','expdate', 'cavv','crypt_type', 'dynamic_descriptor', 'network', 'data_type','wallet_indicator', 'cm_id', 'threeds_version', 'threeds_server_trans_id', 'ds_trans_id', 'tr_id', 'token_cryptogram'),
  				'completion' => array('order_id', 'comp_amount','txn_number', 'crypt_type', 'cust_id', 'dynamic_descriptor', 'ship_indicator'),
  				'contactless_purchase' => array('order_id','cust_id','amount','track2','pan','expdate', 'pos_code','dynamic_descriptor'),
@@ -2347,7 +2694,7 @@ class mpgRequest
  				'forcepost'=> array('order_id','cust_id','amount','pan','expdate','auth_code','crypt_type','dynamic_descriptor'),
  				'ind_refund' => array('order_id','cust_id', 'amount','pan','expdate', 'crypt_type','dynamic_descriptor'),
 	 			'opentotals' => array('ecr_number'),
-	 			'preauth' =>array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'market_indicator', 'cm_id', 'final_auth', 'tr_id', 'token_cryptogram'),
+	 			'preauth' =>array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'market_indicator', 'cm_id', 'final_auth', 'tr_id', 'token_cryptogram','is_incremental'),
 	 			'purchase'=> array('order_id','cust_id', 'amount', 'pan', 'expdate', 'crypt_type','dynamic_descriptor', 'wallet_indicator', 'market_indicator', 'cm_id', 'tr_id', 'token_cryptogram'),
 	 			'purchasecorrection' => array('order_id', 'txn_number', 'crypt_type', 'cust_id', 'dynamic_descriptor'),
 	 			'reauth' =>array('order_id','cust_id', 'amount', 'orig_order_id', 'txn_number', 'crypt_type', 'dynamic_descriptor'),
@@ -2375,7 +2722,7 @@ class mpgRequest
  				'res_add_cc' => array('cust_id','phone','email','note','pan','expdate','crypt_type', 'data_key_format'),
 				'res_add_token' => array('data_key','cust_id','phone','email','note','expdate','crypt_type', 'data_key_format'),
  				'res_card_verification_cc' => array('data_key','order_id', 'crypt_type', 'expdate', 'get_nt_response'),
- 				'res_cavv_preauth_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'get_nt_response'),
+ 				'res_cavv_preauth_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'get_nt_response','is_incremental'),
  				'res_cavv_purchase_cc' => array('data_key','order_id','cust_id','amount','cavv','crypt_type','dynamic_descriptor','expdate', 'threeds_version', 'threeds_server_trans_id', 'final_auth', 'ds_trans_id', 'get_nt_response'),
  				'res_delete' => array('data_key'),
  				'res_get_expiring' => array(),
@@ -2384,7 +2731,7 @@ class mpgRequest
  				'res_lookup_full' => array('data_key'),
 				'res_lookup_masked' => array('data_key'),
  				'res_mpitxn' => array('data_key','xid','amount','MD','merchantUrl','accept','userAgent','expdate'),
- 				'res_preauth_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator', 'final_auth', 'get_nt_response'),
+ 				'res_preauth_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator', 'final_auth', 'get_nt_response', 'is_incremental'),
  				'res_purchase_cc' => array('data_key','order_id','cust_id','amount','crypt_type','dynamic_descriptor','expdate', 'market_indicator', 'get_nt_response'),
  				'res_temp_add' => array('pan','expdate','crypt_type','duration', 'data_key_format', 'anc1'),
  				'res_temp_tokenize' => array('order_id', 'txn_number', 'duration', 'crypt_type'),
@@ -2580,6 +2927,16 @@ class mpgRequest
 				//Surcharge
 				'surcharge_lookup' => array('pan','amount'),
 				'res_surcharge_lookup' => array('data_key','amount'),
+
+				//Incremental Auth
+				'incremental_preauth' => array('order_id','txn_number','amount'),
+
+
+				//PBB
+				'pbb_get_access_token' => array(),
+				'pbb_get_consent_id' => array('consent_id'),
+				'pbb_get_transaction_data' => array('consent_id','amount','currency','transaction_type'),
+				'pbb_create_consent' => array()
 			);
 
 	var $txnArray;
@@ -2783,10 +3140,20 @@ class mpgRequest
 				$txnXMLString .= $cof->toXML();
 			}
 
+			$pbb_info = $txnObj->getPbbInfo();
+			if ($pbb_info != null) {
+				$txnXMLString .= $pbb_info->toXML();
+			}
+
 			$anv  = $txnObj->getAccountNameVerification();
 			if($anv != null)
 			{
 				$txnXMLString .= $anv->toXML();
+			}
+			$surchargeInfo = $txnObj->getSurchargeInfo();
+			if($surchargeInfo != null)
+			{
+				$txnXMLString .= $surchargeInfo->toXML();
 			}
 
 			$installmentInfo = $txnObj->getInstallmentInfo();
@@ -2836,12 +3203,7 @@ class mpgRequest
    			{
    				$txnXMLString .= "<rate_info>".$mcpRateInfo->toXML()."</rate_info>";
    			}
-
-   			$surcharge = $txnObj->getSurchargeInfo();
-			 if($surcharge != null)
-   			{
-   				$txnXMLString .= $surcharge->toXML();
-   			}
+   			
    			$txnXMLString .="</$txnType>";
    			
    			//for risk transactions only
@@ -3105,7 +3467,7 @@ class mpgAccountNameInfo
 		return "<account_name_verification>$xmlString</account_name_verification>";
 	}
 }
-##################### mpgAchInfo ############################################
+##################### surchargeInfo ############################################
 class surchargeInfo
 {
 	private $params = [];
@@ -3135,6 +3497,7 @@ class surchargeInfo
 		return $xmlString;
 	}
 }
+##################### mpgAchInfo ############################################
 
 class mpgAchInfo
 {
@@ -3201,6 +3564,7 @@ class mpgTransaction
 	var $recur = null;
 	var $cvd = null;
 	var $cof = null;
+	var $pbb_info = null;
 	var $avs = null;
 	var $convFee = null;
 	var $ach = null;
@@ -3211,6 +3575,8 @@ class mpgTransaction
 	var $installmentInfo = null;
 	var $anv = null;
 	var $surchargeInfo = null;
+
+	var $pbb_consent_id = null;
 
 	public function __construct($txn)
 	{
@@ -3262,7 +3628,15 @@ class mpgTransaction
 	{
 		$this->avs = $avs;
 	}
-	
+
+	public function getPbbInfo() {
+		return $this->pbb_info;
+	}
+
+	public function setPbbInfo($pbb_info) {
+		$this->pbb_info = $pbb_info;
+	}
+
 	public function getCofInfo()
 	{
 		return $this->cof;
@@ -5780,6 +6154,436 @@ class CofInfo
 
 }//end class
 
+class PbbInfo extends Transaction {
+	private $template = array(
+		'consent_id' => null,
+		'cryptogram' => null,
+		'cryptogram_expiry' => null,
+		'payment_method' => null,
+		'channel' => null,
+		'life_cycle_trace_id' => null
+	);
+
+	public function __construct() {
+		$this->rootTag = 'pbb_info';
+		$this->data = $this->template;
+	}
+
+	function setConsentId($consentId) {
+		$this->data['consent_id'] = $consentId;
+	}
+
+	function setCryptogram($cryptogram) {
+		$this->data['cryptogram'] = $cryptogram;
+	}
+
+	function setCryptogramExpiry($cryptogramExpiry) {
+		$this->data['cryptogram_expiry'] = $cryptogramExpiry;
+	}
+
+	function setPaymentMethod($paymentMethod) {
+		$this->data['payment_method'] = $paymentMethod;
+	}
+
+	function setChannel($channel) {
+		$this->data['channel'] = $channel;
+	}
+
+	function setLifeCycleTraceId($lifeCycleToken) {
+		$this->data['life_cycle_trace_id'] = $lifeCycleToken;
+	}
+}
+
+class PbbGetConsentId extends Transaction {
+
+	private $template = array(
+		'consent_id' => null,
+		'is_phoenix' => null,
+		'ext_id' => null
+	);
+
+	public function __construct() {
+		$this->rootTag = 'pbb_get_consent_id';
+		$this->data = $this->template;
+	}
+
+	function setConsentId($consentId) {
+		$this->data['consent_id'] = $consentId;
+	}
+
+	public function setExtId($ext_id) {
+		$this->data['ext_id'] = $ext_id;
+	}
+
+	public function setIsPhoenix($is_phoenix) {
+		$this->data['is_phoenix'] = $is_phoenix;
+	}
+}
+
+
+class PbbCreateConsent extends Transaction {
+	private $template = array(
+		'pbb_merchant_id' => null,
+		'required_contact_field' => null,
+		'supported_payment_methods' => null
+	);
+
+	public function __construct() {
+		$this->rootTag = 'pbb_create_consent';
+		$this->data = $this->template;
+	}
+
+	public function setPbbPayment($currency, $amount, $subTotal, $tax, $shippingCost, $additionalFees) {
+		$this->data["payment"] = array (
+			"currency" => $currency,
+			"amount" => $amount,
+			"sub_total" => $subTotal,
+			"tax" => $tax,
+			"shipping_cost" => $shippingCost,
+			"additional_fees" => array()
+		);
+
+		$this->data["payment"]["additional_fees"] = array(
+			"additional_fee" => $additionalFees
+		);
+	}
+
+	public function setPbbOrder($shipmentType, $merchantOrderRef, $placementMode, $items)
+	{
+		$this->data["order"] = [
+			"shipment_type"      => $shipmentType,
+			"merchant_order_ref" => $merchantOrderRef,
+			"placement_mode"     => $placementMode,
+			"items"              => [
+				"item" => []
+			]
+		];
+
+		foreach ($items as $item) {
+
+			$itemData = [
+				"item_ref"          => $item["item_ref"],
+				"item_payment_type" => $item["item_payment_type"],
+				"amount"            => $item["amount"],
+				"qty"               => $item["qty"],
+				"description"       => $item["description"],
+			];
+
+			if (!empty($item["item_name"])) {
+				$itemData["item_name"] = $item["item_name"];
+			}
+
+			if (
+				isset($item["recurring_info"]) &&
+				$item["recurring_info"] instanceof RecurringInfo
+			) {
+				$itemData["recurring_info"] = $item["recurring_info"]->toXML();
+			}
+
+			$this->data["order"]["items"]["item"][] = $itemData;
+		}
+
+		// Optional safety reindex
+		$this->data["order"]["items"]["item"] =
+			array_values($this->data["order"]["items"]["item"]);
+	}
+
+	public function setRequiredContactFields($contactFields) {
+		$this->data["required_contact_fields"] = array(
+			"contact_field" => $contactFields
+		);
+
+	}
+
+	public function setPbbMerchantId($pbbMerchantId) {
+		$this->data['pbb_merchant_id'] = $pbbMerchantId;
+	}
+
+	public function setSupportedPaymentMethods($supportedPaymentMethods) {
+		$this->data['supported_payment_methods'] = array(
+			"payment_method" => $supportedPaymentMethods
+		);
+	}
+}
+
+class PbbCancelConsent extends Transaction {
+	private $template = array(
+		'consent_id' => null,
+		'cancel_reference' => null,
+		'cancel_reason' => null
+	);
+
+	public function __construct() {
+		$this->rootTag = 'pbb_cancel_consent';
+		$this->data = $this->template;
+	}
+
+	public function setConsentId($consentId) {
+		$this->data['consent_id'] = $consentId;
+	}
+
+	public function setCancelReference($cancelReference) {
+		$this->data['cancel_reference'] = $cancelReference;
+	}
+
+	public function setCancelReason($cancelReason) {
+		$this->data['cancel_reason'] = $cancelReason;
+	}
+}
+
+class PbbGetTransactionData extends Transaction {
+	private $template = array(
+		'consent_id' => null,
+		'amount' => null,
+		'currency' => null,
+		'payment_type' => null,
+		'transaction_type' => null
+	);
+
+	public function __construct() {
+		$this->rootTag = 'pbb_get_transaction_data';
+		$this->data = $this->template;
+	}
+
+	public function setConsentId($consentId) {
+		$this->data['consent_id'] = $consentId;
+	}
+
+	public function setAmount($amount) {
+		$this->data['amount'] = $amount;
+	}
+
+	public function setCurrency($currency) {
+		$this->data['currency'] = $currency;
+	}
+
+	public function setPaymentType($paymentType) {
+		$this->data['payment_type'] = $paymentType;
+	}
+
+	public function setTransactionType($transactionType) {
+		$this->data['transaction_type'] = $transactionType;
+	}
+}
+
+class RecurringInfo
+{
+	private $amountCapped;
+	private $amountVariance;
+	private $dayOfMonth;
+	private $dayOfWeek;
+	private $startDate;
+	private $endDate;
+	private $frequencyRate;
+	private $frequencyType;
+	private $maxNumberOfPayments;
+	private $recurringType;
+	private $weekOfMonth;
+	private $empty = true;
+
+	public function getAmountCapped()
+	{
+		return $this->amountCapped;
+	}
+
+	public function setAmountCapped($amountCapped)
+	{
+		$this->amountCapped = $amountCapped;
+		$this->empty = false;
+	}
+
+	public function getAmountVariance()
+	{
+		return $this->amountVariance;
+	}
+
+	public function setAmountVariance($amountVariance)
+	{
+		$this->amountVariance = $amountVariance;
+		$this->empty = false;
+	}
+
+	public function getDayOfMonth()
+	{
+		return $this->dayOfMonth;
+	}
+
+	public function setDayOfMonth($dayOfMonth)
+	{
+		$this->dayOfMonth = $dayOfMonth;
+		$this->empty = false;
+	}
+
+	public function getDayOfWeek()
+	{
+		return $this->dayOfWeek;
+	}
+
+	public function setDayOfWeek($dayOfWeek)
+	{
+		$this->dayOfWeek = $dayOfWeek;
+		$this->empty = false;
+	}
+
+	public function getStartDate()
+	{
+		return $this->startDate;
+	}
+
+	public function setStartDate($startDate)
+	{
+		$this->startDate = $startDate;
+		$this->empty = false;
+	}
+
+	public function getEndDate()
+	{
+		return $this->endDate;
+	}
+
+	public function setEndDate($endDate)
+	{
+		$this->endDate = $endDate;
+		$this->empty = false;
+	}
+
+	public function getFrequencyRate()
+	{
+		return $this->frequencyRate;
+	}
+
+	public function setFrequencyRate($frequencyRate)
+	{
+		$this->frequencyRate = $frequencyRate;
+		$this->empty = false;
+	}
+
+	public function getFrequencyType()
+	{
+		return $this->frequencyType;
+	}
+
+	public function setFrequencyType($frequencyType)
+	{
+		$this->frequencyType = $frequencyType;
+		$this->empty = false;
+	}
+
+	public function getMaxNumberOfPayments()
+	{
+		return $this->maxNumberOfPayments;
+	}
+
+	public function setMaxNumberOfPayments($maxNumberOfPayments)
+	{
+		$this->maxNumberOfPayments = $maxNumberOfPayments;
+		$this->empty = false;
+	}
+
+	public function getRecurringType()
+	{
+		return $this->recurringType;
+	}
+
+	public function setRecurringType($recurringType)
+	{
+		$this->recurringType = $recurringType;
+		$this->empty = false;
+	}
+
+	public function getWeekOfMonth()
+	{
+		return $this->weekOfMonth;
+	}
+
+	public function setWeekOfMonth($weekOfMonth)
+	{
+		$this->weekOfMonth = $weekOfMonth;
+		$this->empty = false;
+	}
+
+	public function setRecurringInfo($recurringInfoParams)
+	{
+		if (isset($recurringInfoParams['amount_capped'])) {
+			$this->setAmountCapped($recurringInfoParams['amount_capped']);
+		}
+		if (isset($recurringInfoParams['amount_variance'])) {
+			$this->setAmountVariance($recurringInfoParams['amount_variance']);
+		}
+		if (isset($recurringInfoParams['day_of_month'])) {
+			$this->setDayOfMonth($recurringInfoParams['day_of_month']);
+		}
+		if (isset($recurringInfoParams['day_of_week'])) {
+			$this->setDayOfWeek($recurringInfoParams['day_of_week']);
+		}
+		if (isset($recurringInfoParams['start_date'])) {
+			$this->setStartDate($recurringInfoParams['start_date']);
+		}
+		if (isset($recurringInfoParams['end_date'])) {
+			$this->setEndDate($recurringInfoParams['end_date']);
+		}
+		if (isset($recurringInfoParams['frequency_rate'])) {
+			$this->setFrequencyRate($recurringInfoParams['frequency_rate']);
+		}
+		if (isset($recurringInfoParams['frequency_type'])) {
+			$this->setFrequencyType($recurringInfoParams['frequency_type']);
+		}
+		if (isset($recurringInfoParams['max_number_of_payments'])) {
+			$this->setMaxNumberOfPayments($recurringInfoParams['max_number_of_payments']);
+		}
+		if (isset($recurringInfoParams['recurring_type'])) {
+			$this->setRecurringType($recurringInfoParams['recurring_type']);
+		}
+		if (isset($recurringInfoParams['week_of_month'])) {
+			$this->setWeekOfMonth($recurringInfoParams['week_of_month']);
+		}
+	}
+
+	public function toXML()
+	{
+		if ($this->empty) {
+			return "";
+		}
+
+		$xml = "";
+		if ($this->amountCapped !== null) {
+			$xml .= "<amount_capped>{$this->amountCapped}</amount_capped>";
+		}
+		if ($this->amountVariance !== null) {
+			$xml .= "<amount_variance>{$this->amountVariance}</amount_variance>";
+		}
+		if ($this->dayOfMonth !== null) {
+			$xml .= "<day_of_month>{$this->dayOfMonth}</day_of_month>";
+		}
+		if ($this->dayOfWeek !== null) {
+			$xml .= "<day_of_week>{$this->dayOfWeek}</day_of_week>";
+		}
+		if ($this->startDate !== null) {
+			$xml .= "<start_date>{$this->startDate}</start_date>";
+		}
+		if ($this->endDate !== null) {
+			$xml .= "<end_date>{$this->endDate}</end_date>";
+		}
+		if ($this->frequencyRate !== null) {
+			$xml .= "<frequency_rate>{$this->frequencyRate}</frequency_rate>";
+		}
+		if ($this->frequencyType !== null) {
+			$xml .= "<frequency_type>{$this->frequencyType}</frequency_type>";
+		}
+		if ($this->maxNumberOfPayments !== null) {
+			$xml .= "<max_number_of_payments>{$this->maxNumberOfPayments}</max_number_of_payments>";
+		}
+		if ($this->recurringType !== null) {
+			$xml .= "<recurring_type>{$this->recurringType}</recurring_type>";
+		}
+		if ($this->weekOfMonth !== null) {
+			$xml .= "<week_of_month>{$this->weekOfMonth}</week_of_month>";
+		}
+
+		return $xml;
+	}
+}
+
 class InstallmentInfo
 {
 	private $template = array(
@@ -7665,7 +8469,7 @@ class PromotionInfo {
 
 class FirstInstallment {
 	// Properties
-	public $upfrontFee, $installmentFee, $amount, $totalAmount;
+	public $upfrontFee, $installmentFee, $amount;
   
 	// Methods
 	function getUpfrontFee() {
@@ -7691,18 +8495,11 @@ class FirstInstallment {
 	function setAmount($amount) {
 		$this->amount = $amount;
 	}
-
-	function getTotalAmount() {
-		return  $this->totalAmount;
-	}
-	function setTotalAmount($totalAmount) {
-		$this->totalAmount = $totalAmount;
-	}
 }
 
 class LastInstallment {
 	// Properties
-	public $installmentFee, $amount, $totalAmount;
+	public $installmentFee, $amount;
   
 	// Methods
 	function getInstallmentFee() {
@@ -7719,12 +8516,6 @@ class LastInstallment {
 
 	function setAmount($amount) {
 		$this->amount = $amount;
-	}
-	function getTotalAmount() {
-		return  $this->totalAmount;
-	}
-	function setTotalAmount($totalAmount) {
-		$this->totalAmount = $totalAmount;
 	}
 }
 

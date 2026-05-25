@@ -2,13 +2,19 @@
 
 require "../../mpgClasses.php";
 
-$store_id='store5';
-$api_token='yesguy';
-$orderid='ord-150816-11:55:18';
-$txnnumber='117735-0_10';
+$store_id='monca03650';
+$api_token='7Yw0MPTlhjBRcZiE6837';
+$orderid='ord-070126-20:32:24';
+$txnnumber='38287-0_1355';
 
-$compamount='1.00';
+$compamount='21.00';
 $dynamic_descriptor='123';
+
+$consent_id = '52fc438c-373d-40ea-abb7-c9809af56498';
+$cryptogram = 'eyJraWQiOiJpZGlyZWN0LXRva2VuLWp3cy0wMDEiLCJhbGciOiJFUzI1NiJ9..TYgNqpyca6b5j6boxlxTzpmgTWTQ1XInXQD1XBRwwiep-pI8h3BTNSASgLOxrm2HtG9RUXUGIBnDTS6YwsPxSQ';
+$cryptogram_expiry = '2026-01-07T21:19:50.000Z';
+$payment_method = 'BANK_ACCOUNT_CHEQUING';
+$channel = 'DESKTOP_WEB';
 
 $ship_indicator = "F"; //optional
 
@@ -18,7 +24,7 @@ $txnArray=array('type'=>'completion',
          'order_id'=>$orderid,
          'comp_amount'=>$compamount,
          'crypt_type'=>'7',
-         'cust_id'=>'customer ID',
+         'cust_id'=>'cust id',
          //'ship_indicator'=>$ship_indicator, //optional
          'dynamic_descriptor'=>$dynamic_descriptor
            );
@@ -32,8 +38,19 @@ $mpgTxn = new mpgTransaction($txnArray);
 /******************* Surcharge Info *OPTIONAL* **********************************/
 $surchargeInfo = new SurchargeInfo();
 $surchargeInfo->setSurchargeAmount("1.00");
-$mpgTxn->setSurchargeInfo($surchargeInfo);
+//$mpgTxn->setSurchargeInfo($surchargeInfo);
 
+
+/******************* PBB Info **********************************/
+
+$pbb_info = new PbbInfo();
+$pbb_info->setConsentId($consent_id);
+$pbb_info->setCryptogram($cryptogram);
+$pbb_info->setCryptogramExpiry($cryptogram_expiry);
+$pbb_info->setPaymentMethod($payment_method);
+$pbb_info->setChannel($channel);
+
+$mpgTxn->setPbbInfo($pbb_info);
 
 ## step 3) create a mpgRequest object passing the transaction object created
 ## in step 2
@@ -66,5 +83,7 @@ print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+
+//print("\nPBBLifeCycleTraceId = " . $mpgResponse->getPBBLifeCycleTraceId());
 ?>
 

@@ -4,10 +4,10 @@ require "../../mpgClasses.php";
 
 $store_id='monca03650';
 $api_token='7Yw0MPTlhjBRcZiE6837';
-$orderid='ord-290824-5:27:32';
-$txnnumber='16204-0_879';
+$orderid='ord-070126-19:57:28';
+$txnnumber='38283-0_1355';
 
-$amount='20.20';
+$amount='20.00';
 
 ## step 1) create transaction array ###
 $txnArray=array('type'=>'incremental_preauth',

@@ -12,14 +12,18 @@
 
 require "../../mpgClasses.php";
 
-$store_id='store5';
-$api_token='yesguy';
-$orderid='ord-150816-11:56:58';
-$txnnumber='117743-0_10';
-$amount = '1.00';
+$store_id='monca03650';
+$api_token='7Yw0MPTlhjBRcZiE6837';
+$orderid='ord-070126-20:32:24';
+$txnnumber='38288-1_1355';
+$amount = '21.00';
 $crypt_type = '7';
 
 $dynamic_descriptor='123';
+
+$consent_id='52fc438c-373d-40ea-abb7-c9809af56498';
+$life_cycle_token='A1A3hHCXAqdhRvW';
+$channel='DESKTOP_WEB';
 
 ## step 1) create transaction array ###
 $txnArray=array('type'=>'refund',
@@ -36,10 +40,19 @@ $txnArray=array('type'=>'refund',
 
 $mpgTxn = new mpgTransaction($txnArray);
 
+/******************* PBB Info **********************************/
+
+$pbb_info = new PbbInfo();
+$pbb_info->setConsentId($consent_id);
+$pbb_info->setChannel($channel);
+$pbb_info->setLifeCycleTraceId($life_cycle_token);
+
+$mpgTxn->setPbbInfo($pbb_info);
+
 /******************* Surcharge Info *OPTIONAL* **********************************/
 $surchargeInfo = new SurchargeInfo();
 $surchargeInfo->setSurchargeAmount("1.00");
-$mpgTxn->setSurchargeInfo($surchargeInfo);
+//$mpgTxn->setSurchargeInfo($surchargeInfo);
 
 
 ## step 3) create a mpgRequest object passing the transaction object created
@@ -73,5 +86,6 @@ print("\nTransTime = " . $mpgResponse->getTransTime());
 print("\nTicket = " . $mpgResponse->getTicket());
 print("\nTimedOut = " . $mpgResponse->getTimedOut());
 print("\nSourcePanLast4 = " . $mpgResponse->getSourcePanLast4());
+print("\nPBBLifeCycleTraceId = " . $mpgResponse->getPBBLifeCycleTraceId());
 ?>
 

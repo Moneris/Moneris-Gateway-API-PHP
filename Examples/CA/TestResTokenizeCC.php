@@ -4,15 +4,16 @@ require "../../mpgClasses.php";
 
 /**************************** Request Variables *******************************/
 
-$store_id='store5';
-$api_token='yesguy';
+$store_id='monca03650';
+$api_token='7Yw0MPTlhjBRcZiE6837';
 
 /************************* Transactional Variables ****************************/
 
 $type='res_tokenize_cc';
-$order_id='res-purch-110515-12:56:49';
-$txn_number='31570-0_10';
+$order_id='Test230125-16:59:38';
+$txn_number='27338-0_579';
 $data_key_format = "0";
+$return_issuer_id = "true";
 
 $cust_id='customer1';
 $phone = '4165555555';
@@ -29,6 +30,7 @@ $txnArray=array('type'=>$type,
 				'order_id'=>$order_id,
 				'txn_number'=>$txn_number,
 				//'data_key_format'=>$data_key_format, //optional
+				'return_issuer_id'=>$return_issuer_id,
 				'cust_id'=>$cust_id,
 				'phone'=>$phone,
 				'email'=>$email,
@@ -94,6 +96,7 @@ print("\nCrypt Type = " . $mpgResponse->getResDataCryptType());
 print("\nAvs Street Number = " . $mpgResponse->getResDataAvsStreetNumber());
 print("\nAvs Street Name = " . $mpgResponse->getResDataAvsStreetName());
 print("\nAvs Zipcode = " . $mpgResponse->getResDataAvsZipcode());
+print("\nIssuer ID = " . $mpgResponse->getIssuerId());
 
 ?>
 

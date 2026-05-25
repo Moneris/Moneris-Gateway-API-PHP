@@ -12,13 +12,14 @@ $api_token='7Yw0MPTlhjBRcZiE6837';
 $type='cavv_preauth';
 $order_id='ord-'.date("dmy-G:i:s");
 $cust_id='CUST887763';
-$amount='4840.00';
+$amount='40.00';
 $pan='5454545454545454';
 $expiry_date='2212';
 $cavv='AAABBJg0VhI0VniQEjRWAAAAAAA=';
 $crypt_type = '7';
 $wallet_indicator = "APP";
 $dynamic_descriptor='123456';
+$is_incremental= 'true';
 
 // TrId and TokenCryptogram are optional, refer documentation for more details.
 $tr_id = '50189815682';
@@ -34,6 +35,7 @@ $txnArray=array(
 	'pan'=>$pan,
 	'expdate'=>$expiry_date,
 	'cavv'=>$cavv,
+	'is_incremental'=>$is_incremental,
 	'crypt_type'=>$crypt_type, //mandatory for AMEX only
 	//'wallet_indicator'=>$wallet_indicator, //set only for wallet transactions. e.g. APPLE PAY
 	//'network'=> "Interac", //set only for Interac e-commerce
@@ -63,7 +65,7 @@ $mpgTxn->setCofInfo($cof);
 /******************* Surcharge Info *OPTIONAL* **********************************/
 $surchargeInfo = new SurchargeInfo();
 $surchargeInfo->setSurchargeAmount("1.00");
-$mpgTxn->setSurchargeInfo($surchargeInfo);
+//$mpgTxn->setSurchargeInfo($surchargeInfo);
 
 
 /******************************* Request Object **********************************/
